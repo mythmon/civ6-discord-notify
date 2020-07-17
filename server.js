@@ -66,8 +66,8 @@ app.post("/api/turn/:secretKey", async (request, response) => {
   }
 
   const player = config.players[playerCivName] || { civName: playerCivName };
-  
-  await db('moves').insert({ playerCivName, gameName, turnNumber });
+
+  await db("moves").insert({ playerCivName, gameName, turnNumber });
   sendTurnNotification({ player, game, turnNumber });
 
   response.status(202);
@@ -136,25 +136,13 @@ async function sendTurnNotification({ player, game, turnNumber }) {
   });
 }
 
-
 app.get("/api/game", async (request, response) => {
-  const gameNames = 
-  
-  const games = config.games[gameName];
-  if (!game) {
-    response.status(404);
-    response.json({ error: `Unknown game "${gameName}"` });
-    return;
-  }
-  
-  const lastNotification = await db.first('*').from('moves').where({gameName}).orderBy('receivedAt', 'desc');
-  
-  response.json({
-    name: gameName,
-    lastNotification,
-  })
-});
+  const gameNames = (await db("moves").distinct("gameName")).map((g) => g.gameName);
 
+  response.json({
+    names: gameNames
+  });
+});
 
 app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
@@ -166,12 +154,17 @@ app.get("/api/game/:gameName", async (request, response) => {
     return;
   }
   
-  const lastNotification = await db.first('*').from('moves').where({gameName}).orderBy('receivedAt', 'desc');
-  
+  const gameMoves = db("moves").where({ gameName });
+
+  const lastNotification = await gameMoves.orderBy("receivedAt", "desc").first("*");
+  const players = (await gameMoves.distinct("playerCivName")).map((move) => move.playerCivName);
+  const turnNumber = await gameMoves.orderBy("receivedAtfirst("turnNumber");
+
   response.json({
     name: gameName,
     lastNotification,
-  })
+    players,
+  });
 });
 
 app.get("/api/game/:gameName/history", async (request, response) => {
@@ -183,12 +176,15 @@ app.get("/api/game/:gameName/history", async (request, response) => {
     response.json({ error: `Unknown game "${gameName}"` });
     return;
   }
-  
-  const moves = await db.select('*').from('moves').where({gameName});
+
+  const moves = await db
+    .select("*")
+    .from("moves")
+    .where({ gameName });
   response.json({
     name: gameName,
-    turnNotifications: moves,
-  })
+    turnNotifications: moves
+  });
 });
 
 // listen for requests :)
