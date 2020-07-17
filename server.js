@@ -30,7 +30,7 @@ const config = {
     ])
   ),
   messageStyle: process.env.MESSAGE_STYLE || "plain", // embed, plain, or hybrid
-  db: knexConfig,
+  db: knexConfig
 };
 
 const db = knex(config.db);
@@ -58,15 +58,16 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     return;
   }
 
-  const gameObj = config.games[gameName];
-  if (!gameObj) {
+  const game = config.games[gameName];
+  if (!game) {
     response.status(404);
     response.json({ error: `Unknown game ${gameName}` });
     return;
   }
 
-  const player = c
-  db.insert({ playerCivName, gameName, turnNumber });
+  const player = config.players[playerCivName] || { civName: playerCivName };
+  
+  await db('moves').insert({ playerCivName, gameName, turnNumber });
   sendTurnNotification({ player, game, turnNumber });
 
   response.status(202);
@@ -107,7 +108,7 @@ async function sendTurnNotification({ player, game, turnNumber }) {
     }
 
     case "hybrid": {
-      discordPayload.content = `It's ${playerMention}'s move turn ${turnNumber}`;
+      discordPayload.content = `It's ${playerMention}'s move`;
       discordPayload.embeds = [
         {
           title: game.name,
@@ -133,8 +134,6 @@ async function sendTurnNotification({ player, game, turnNumber }) {
     body: JSON.stringify(discordPayload),
     headers: { "Content-Type": "application/json" }
   });
-
-  console.log(await res.json());
 }
 
 // listen for requests :)

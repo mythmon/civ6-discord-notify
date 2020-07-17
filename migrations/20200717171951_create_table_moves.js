@@ -1,13 +1,13 @@
-exports.up = function(knex) {
-  knex.createTable('moves', table => {
+exports.up = async (knex) => {
+  await knex.schema.createTable('moves', table => {
     table.increments('id');
     table.string('playerCivName');
     table.string('gameName');
     table.integer('turnNumber').unsigned();
     table.timestamp('receivedAt', { useTz: true }).defaultTo(knex.fn.now());
-  })
+  });
 };
 
-exports.down = function(knex) {
-  knex.schema.dropTable('moves');
+exports.down = async (knex) => {
+  await knex.schema.dropTable('moves');
 };
