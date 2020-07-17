@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+
 function parseConfigMap(configEntry) {
   return configEntry
     .split(",")
@@ -32,9 +34,39 @@ app.get("/", (request, response) => {
   response.sendFile(__dirname + "/views/index.html");
 });
 
-app.post("/api/turn/:key", (request, response) => {
-  console.log(response.params, response.json());
-  response.status(201);
+app.post("/api/turn/:secretKey", (request, response) => {
+  const { secretKey } = request.params;
+  const {
+    value1: gameName,
+    value2: playerCivName,
+    value3: turnNumber
+  } = request.body;
+
+  if (secretKey !== config.secretKey) {
+    console.warn("bad secret", secretKey);
+    response.status(403);
+    response.json({ error: "bad secret" });
+    return;
+  }
+
+  const gameObj = config.games[gameName];
+  if (!gameObj) {
+    response.status(404);
+    response.json({ error: `Unknown game ${gameName}` });
+    return;
+  }
+  
+  let playerMention = playerCivName;
+  const playerObj = config.players[playerCivName];
+  if (playerObj && playerObj.discordId) {
+    playerMention = `<@${playerObj.discordId`
+  }
+
+  const message = `It's ${playerCivName}'s move on turn ${turnNumber} of ${gameName}.`;
+  console.log(message);
+
+  response.status(202);
+  response.json({ message });
 });
 
 // listen for requests :)
