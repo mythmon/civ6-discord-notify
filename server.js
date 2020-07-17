@@ -26,7 +26,7 @@ const config = {
       { discordId }
     ])
   ),
-  messageStyle: 'embed', // embed, plain, or hybrid
+  messageStyle: process.env.MESSAGE_STYLE || "embed" // embed, plain, or hybrid
 };
 
 // make all the files in 'public' available
@@ -72,15 +72,43 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     avatar_url:
       "https://cdn.glitch.com/72884494-98c1-49e5-a144-3cc3e5f2a6a3%2Fciv6%20icon.jpg?v=1594946929396",
     allowed_mentions
-    embeds: [
-      {
-        title: gameName,
-        color: 0x05d458,
-        description: `It's ${playerMention}'s move on turn ${turnNumber}`
-      }
-    ],
-    allowed_mentions
   };
+
+  switch (config.messageStyle) {
+    case "embed": {
+      discordPayload.embeds = [
+        {
+          title: gameName,
+          color: 0x05d458,
+          description: `It's ${playerMention}'s move on turn ${turnNumber}`
+        }
+      ];
+      break;
+    }
+      
+    case "plain": {
+      discordPayload.content = `It's ${playerMention}'s move on ${gameName} turn ${turnNumber}`;
+      break;
+    }
+      
+    case "hybrid": {
+      discordPayload.content = `It's ${playerMention}'s move turn ${turnNumber}`;
+      discordPayload.embeds = [
+        {
+          title: gameName,
+          color: 0x05d458,
+          description: `Turn ${turnNumber}`,
+        }
+      ];
+      break;
+    }
+      
+    default: {
+      res.status(500);
+      res.send();
+      throw new Error(`Unknown messageStyle ${config.messageStyle}`);
+    }
+  }
 
   const url = new URL(gameObj.webhookUrl);
   url.searchParams.set("wait", true);
