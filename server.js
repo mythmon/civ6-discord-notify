@@ -136,6 +136,23 @@ async function sendTurnNotification({ player, game, turnNumber }) {
   });
 }
 
+app.get("/api/game/:gameName", async (request, response) => {
+  const { gameName } = request.params;
+
+  const game = config.games[gameName];
+  if (!game) {
+    response.status(404);
+    response.json({ error: `Unknown game "${gameName}"` });
+    return;
+  }
+  
+  const moves = await db.select('*').from('moves').where({gameName});
+  response.json({
+    name: gameName,
+    turnNotifications: moves,
+  })
+});
+
 // listen for requests :)
 const listener = app.listen(process.env.PORT, () => {
   console.log("Your app is listening on port " + listener.address().port);
