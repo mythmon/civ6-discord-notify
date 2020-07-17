@@ -1,10 +1,8 @@
 {
-  "//1": "describes your app and its dependencies",
-  "//2": "https://docs.npmjs.com/files/package.json",
-  "//3": "updating this file will download and update your packages",
-  "name": "hello-express",
+  "name": "civ6-discord-notifier",
+  "private": true,
   "version": "0.0.1",
-  "description": "A simple Node app built on Express, instantly up and running.",
+  "description": "Receives web hooks from Civilization 6 Play by Cloud and forwards them to Discord with formatting.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -17,12 +15,13 @@
     "node": "12.x"
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/hello-express"
+    "url": "https://glitch.com/edit/#!/fungeon-civ6-discord-notify"
   },
   "license": "MIT",
   "keywords": [
     "node",
     "glitch",
-    "express"
+    "express",
+    "civ6"
   ]
 }

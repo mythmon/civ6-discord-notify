@@ -25,7 +25,8 @@ const config = {
       playerName,
       { discordId }
     ])
-  )
+  ),
+  messageStyle: 'embed', // embed, plain, or hybrid
 };
 
 // make all the files in 'public' available
@@ -70,6 +71,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     username: "Civilization VI",
     avatar_url:
       "https://cdn.glitch.com/72884494-98c1-49e5-a144-3cc3e5f2a6a3%2Fciv6%20icon.jpg?v=1594946929396",
+    allowed_mentions
     embeds: [
       {
         title: gameName,
