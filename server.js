@@ -1,12 +1,6 @@
 const express = require("express");
 const app = express();
 
-const config = {
-  secretKey
-  games: {},
-  players: {}
-};
-
 function parseConfigMap(configEntry) {
   return configEntry
     .split(",")
@@ -14,21 +8,21 @@ function parseConfigMap(configEntry) {
     .map(([key, val]) => [key.trim(), val.trim()]);
 }
 
-config.games = Object.fromEntries(
-  parseConfigMap(process.env.GAMES_TO_WEBHOOKS).map(([game, webhookUrl]) => [
-    game,
-    { webhookUrl }
-  ])
-);
-
-config.players = Object.fromEntries(
-  parseConfigMap(process.env.PLAYER_IDS).map(([playerName, discordId]) => [
-    playerName,
-    { discordId }
-  ])
-);
-
-console.log(JSON.stringify(config, null, 4));
+const config = {
+  secretKey: process.env.SECRET_KEY,
+  games: Object.fromEntries(
+    parseConfigMap(process.env.GAMES_TO_WEBHOOKS).map(([game, webhookUrl]) => [
+      game,
+      { webhookUrl }
+    ])
+  ),
+  players: Object.fromEntries(
+    parseConfigMap(process.env.PLAYER_IDS).map(([playerName, discordId]) => [
+      playerName,
+      { discordId }
+    ])
+  )
+};
 
 // make all the files in 'public' available
 // https://expressjs.com/en/starter/static-files.html
@@ -40,9 +34,11 @@ app.get("/", (request, response) => {
 });
 
 // send the default array of dreams to the webpage
-app.get("/dreams", (request, response) => {
+app.post("/api/turn/:key", (request, response) => {
   // express helps us take JS objects and send them as JSON
-  response.json(dreams);
+  response.json({
+    key: request.param.key,
+  });
 });
 
 // listen for requests :)
