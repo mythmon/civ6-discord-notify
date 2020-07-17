@@ -74,24 +74,21 @@ app.post("/api/turn/:secretKey", async (request, response) => {
       {
         title: gameName,
         color: 0x05d458,
-        footer: {
-          text: `Civ6 Discord Notifier https://${process.env.PROJECT_DOMAIN}.glitch.me/g/${gameName}`,
-        },
         description: `It's ${playerMention}'s move on turn ${turnNumber}`
       }
     ],
     allowed_mentions
   };
-  
+
   const url = new URL(gameObj.webhookUrl);
-  url.searchParams.set('wait', true);
-  console.log('POST', url.toString());
+  url.searchParams.set("wait", true);
+  console.log("POST", url.toString());
   const res = await fetch(url, {
-    method: 'post',
+    method: "post",
     body: JSON.stringify(discordPayload),
-    headers: {'Content-Type': 'application/json'},
+    headers: { "Content-Type": "application/json" }
   });
-  
+
   console.log(await res.json());
 
   response.status(202);
