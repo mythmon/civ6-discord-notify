@@ -39,9 +39,9 @@ app.get("/", (request, response) => {
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
   const {
-    value1: gameName,
-    value2: playerCivName,
-    value3: turnNumber
+    Value1: gameName,
+    Value2: playerCivName,
+    Value3: turnNumber
   } = request.body;
 
   if (secretKey !== config.secretKey) {
