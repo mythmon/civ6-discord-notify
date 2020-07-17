@@ -34,7 +34,7 @@ app.get("/", (request, response) => {
   response.sendFile(__dirname + "/views/index.html");
 });
 
-app.post("/api/turn/:secretKey", (request, response) => {
+app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
   const {
     value1: gameName,
@@ -59,14 +59,14 @@ app.post("/api/turn/:secretKey", (request, response) => {
   let playerMention = playerCivName;
   const playerObj = config.players[playerCivName];
   if (playerObj && playerObj.discordId) {
-    playerMention = `<@${playerObj.discordId`
+    playerMention = `<@${playerObj.discordId}>`;
   }
 
-  const message = `It's ${playerCivName}'s move on turn ${turnNumber} of ${gameName}.`;
-  console.log(message);
+  const discordPayload = {content: `It's ${playerMention}'s move on turn ${turnNumber} of ${gameName}.`};
+  console.log(discordPayload);
 
   response.status(202);
-  response.json({ message });
+  response.send();
 });
 
 // listen for requests :)
