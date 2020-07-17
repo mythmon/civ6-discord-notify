@@ -1,5 +1,8 @@
 const express = require("express");
 const fetch = require("node-fetch");
+const knex = require("knex");
+
+const knexConfig = require("./knexfile");
 
 const app = express();
 
@@ -17,17 +20,20 @@ const config = {
   games: Object.fromEntries(
     parseConfigMap(process.env.GAMES_TO_WEBHOOKS).map(([game, webhookUrl]) => [
       game,
-      { webhookUrl }
+      { name: game, webhookUrl }
     ])
   ),
   players: Object.fromEntries(
     parseConfigMap(process.env.PLAYER_IDS).map(([playerName, discordId]) => [
       playerName,
-      { discordId }
+      { civName: playerName, discordId }
     ])
   ),
-  messageStyle: process.env.MESSAGE_STYLE || "embed" // embed, plain, or hybrid
+  messageStyle: process.env.MESSAGE_STYLE || "plain", // embed, plain, or hybrid
+  db: knexConfig,
 };
+
+const db = knex(config.db);
 
 // make all the files in 'public' available
 // https://expressjs.com/en/starter/static-files.html
@@ -59,9 +65,18 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     return;
   }
 
-  let playerMention = playerCivName;
+  const player = c
+  db.insert({ playerCivName, gameName, turnNumber });
+  sendTurnNotification({ player, game, turnNumber });
+
+  response.status(202);
+  response.send();
+});
+
+async function sendTurnNotification({ player, game, turnNumber }) {
+  let playerMention = player.civName;
   let allowed_mentions = {};
-  const playerObj = config.players[playerCivName];
+  const playerObj = config.players[player.civName];
   if (playerObj && playerObj.discordId) {
     playerMention = `<@${playerObj.discordId}>`;
     allowed_mentions.users = [playerObj.discordId];
@@ -78,31 +93,31 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     case "embed": {
       discordPayload.embeds = [
         {
-          title: gameName,
+          title: game.name,
           color: 0x05d458,
           description: `It's ${playerMention}'s move on turn ${turnNumber}`
         }
       ];
       break;
     }
-      
+
     case "plain": {
-      discordPayload.content = `It's ${playerMention}'s move on ${gameName} turn ${turnNumber}`;
+      discordPayload.content = `It's ${playerMention}'s move on ${game.name} turn ${turnNumber}`;
       break;
     }
-      
+
     case "hybrid": {
       discordPayload.content = `It's ${playerMention}'s move turn ${turnNumber}`;
       discordPayload.embeds = [
         {
-          title: gameName,
+          title: game.name,
           color: 0x05d458,
-          description: `Turn ${turnNumber}`,
+          description: `Turn ${turnNumber}`
         }
       ];
       break;
     }
-      
+
     default: {
       res.status(500);
       res.send();
@@ -110,7 +125,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     }
   }
 
-  const url = new URL(gameObj.webhookUrl);
+  const url = new URL(game.webhookUrl);
   url.searchParams.set("wait", true);
   console.log("POST", url.toString());
   const res = await fetch(url, {
@@ -120,10 +135,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
   });
 
   console.log(await res.json());
-
-  response.status(202);
-  response.send();
-});
+}
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, () => {

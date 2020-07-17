@@ -4,10 +4,10 @@ exports.up = function(knex) {
     table.string('playerCivName');
     table.string('gameName');
     table.integer('turnNumber').unsigned();
-    table.timestamp('created_at', { useTz: true });
+    table.timestamp('receivedAt', { useTz: true }).defaultTo(knex.fn.now());
   })
 };
 
 exports.down = function(knex) {
-  
+  knex.schema.dropTable('moves');
 };
