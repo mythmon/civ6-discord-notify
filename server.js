@@ -1,12 +1,9 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const knex = require("knex");
+const fallback = require("express-history-api-fallback");
 
 const knexConfig = require("./knexfile");
-
-const app = express();
-
-app.use(express.json());
 
 function parseConfigMap(configEntry) {
   return configEntry
@@ -35,13 +32,13 @@ const config = {
 
 const db = knex(config.db);
 
-// make all the files in 'public' available
-// https://expressjs.com/en/starter/static-files.html
-app.use(express.static("public"));
+const app = express();
 
-app.get("/", (request, response) => {
-  response.sendFile(__dirname + "/views/index.html");
-});
+app.use(express.json());
+
+const root = __dirname + '/public';
+app.use(express.static(root));
+app.use(fallback("index.html", { root }));
 
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
@@ -137,7 +134,9 @@ async function sendTurnNotification({ player, game, turnNumber }) {
 }
 
 app.get("/api/game", async (request, response) => {
-  const gameNames = await db("moves").distinct("gameName").pluck("gameName");
+  const gameNames = await db("moves")
+    .distinct("gameName")
+    .pluck("gameName");
 
   response.json({
     names: gameNames
@@ -153,18 +152,23 @@ app.get("/api/game/:gameName", async (request, response) => {
     response.json({ error: `Unknown game "${gameName}"` });
     return;
   }
-  
-  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
+
+  const gameMoves = db("moves")
+    .where({ gameName })
+    .orderBy("receivedAt", "desc");
 
   const lastNotification = await gameMoves.clone().first("*");
-  const players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
+  const players = await gameMoves
+    .clone()
+    .distinct("playerCivName")
+    .pluck("playerCivName");
 
   response.json({
     name: gameName,
     players,
     turnNumber: lastNotification.turnNumber,
     currentPlayer: lastNotification.playerCivName,
-    lastUpdated: lastNotification.receivedAt,
+    lastUpdated: lastNotification.receivedAt
   });
 });
 
