@@ -136,7 +136,45 @@ async function sendTurnNotification({ player, game, turnNumber }) {
   });
 }
 
+
+app.get("/api/game", async (request, response) => {
+  const gameNames = 
+  
+  const games = config.games[gameName];
+  if (!game) {
+    response.status(404);
+    response.json({ error: `Unknown game "${gameName}"` });
+    return;
+  }
+  
+  const lastNotification = await db.first('*').from('moves').where({gameName}).orderBy('receivedAt', 'desc');
+  
+  response.json({
+    name: gameName,
+    lastNotification,
+  })
+});
+
+
 app.get("/api/game/:gameName", async (request, response) => {
+  const { gameName } = request.params;
+
+  const game = config.games[gameName];
+  if (!game) {
+    response.status(404);
+    response.json({ error: `Unknown game "${gameName}"` });
+    return;
+  }
+  
+  const lastNotification = await db.first('*').from('moves').where({gameName}).orderBy('receivedAt', 'desc');
+  
+  response.json({
+    name: gameName,
+    lastNotification,
+  })
+});
+
+app.get("/api/game/:gameName/history", async (request, response) => {
   const { gameName } = request.params;
 
   const game = config.games[gameName];
