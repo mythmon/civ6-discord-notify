@@ -137,7 +137,7 @@ async function sendTurnNotification({ player, game, turnNumber }) {
 }
 
 app.get("/api/game", async (request, response) => {
-  const gameNames = (await db("moves").distinct("gameName")).map((g) => g.gameName);
+  const gameNames = await db("moves").distinct("gameName").pluck("gameName");
 
   response.json({
     names: gameNames
@@ -154,16 +154,17 @@ app.get("/api/game/:gameName", async (request, response) => {
     return;
   }
   
-  const gameMoves = db("moves").where({ gameName });
+  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
 
-  const lastNotification = await gameMoves.orderBy("receivedAt", "desc").first("*");
-  const players = (await gameMoves.distinct("playerCivName")).map((move) => move.playerCivName);
-  const turnNumber = await gameMoves.orderBy("receivedAtfirst("turnNumber");
+  const lastNotification = await gameMoves.clone().first("*");
+  const players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
 
   response.json({
     name: gameName,
-    lastNotification,
     players,
+    turnNumber: lastNotification.turnNumber,
+    currentPlayer: lastNotification.playerCivName,
+    lastUpdated: lastNotification.receivedAt,
   });
 });
 
