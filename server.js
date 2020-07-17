@@ -1,4 +1,6 @@
 const express = require("express");
+const fetch = require("node-fetch");
+
 const app = express();
 
 app.use(express.json());
@@ -55,15 +57,40 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     response.json({ error: `Unknown game ${gameName}` });
     return;
   }
-  
+
   let playerMention = playerCivName;
+  let allowed_mentions = {};
   const playerObj = config.players[playerCivName];
   if (playerObj && playerObj.discordId) {
     playerMention = `<@${playerObj.discordId}>`;
+    allowed_mentions.users = [playerObj.discordId];
   }
 
-  const discordPayload = {content: `It's ${playerMention}'s move on turn ${turnNumber} of ${gameName}.`};
+  const discordPayload = {
+    //content: `It's ${playerMention}'s move on turn ${turnNumber} of ${gameName}.`,
+    username: "Civilization VI",
+    avatar_url:
+      "https://cdn.glitch.com/72884494-98c1-49e5-a144-3cc3e5f2a6a3%2Fciv6%20icon.jpg?v=1594946929396",
+    embeds: [
+      {
+        title: gameName,
+        color: 0x05d458,
+        provider: "civ6-discord-notifier",
+        description: `It's ${playerMention}'s move on turn ${turnNumber}`
+      }
+    ],
+    allowed_mentions
+  };
+  
   console.log(discordPayload);
+  
+  const res = await fetch(gameObj.webhookUrl, {
+    method: 'post',
+    body: JSON.stringify(discordPayload),
+    headers: {'Content-Type': 'application/json'},
+  });
+  
+  console.log(res);
 
   response.status(202);
   response.send();
