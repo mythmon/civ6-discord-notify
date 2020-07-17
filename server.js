@@ -1,17 +1,34 @@
-// server.js
-// where your node app starts
-
-// we've started you off with Express (https://expressjs.com/)
-// but feel free to use whatever libraries or frameworks you'd like through `package.json`.
 const express = require("express");
 const app = express();
 
-// our default array of dreams
-const dreams = [
-  "Find and count some sheep",
-  "Climb a really tall mountain",
-  "Wash the dishes"
-];
+const config = {
+  secretKey
+  games: {},
+  players: {}
+};
+
+function parseConfigMap(configEntry) {
+  return configEntry
+    .split(",")
+    .map(keyAndVal => keyAndVal.split("="))
+    .map(([key, val]) => [key.trim(), val.trim()]);
+}
+
+config.games = Object.fromEntries(
+  parseConfigMap(process.env.GAMES_TO_WEBHOOKS).map(([game, webhookUrl]) => [
+    game,
+    { webhookUrl }
+  ])
+);
+
+config.players = Object.fromEntries(
+  parseConfigMap(process.env.PLAYER_IDS).map(([playerName, discordId]) => [
+    playerName,
+    { discordId }
+  ])
+);
+
+console.log(JSON.stringify(config, null, 4));
 
 // make all the files in 'public' available
 // https://expressjs.com/en/starter/static-files.html
