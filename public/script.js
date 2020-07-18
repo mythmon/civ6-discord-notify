@@ -2,29 +2,35 @@ import { html, render, useState, Link, Route, Switch, useSWR, SWRConfig } from "
 
 function App() {
   return html`
-    <${SWRConfig} value=${{
-      refreshInterval: 30_000,
-      fetch: (...args) => fetch(...args).then(res => res.json()),
-    }}>
-      <h1>Hello, Preact!</h1>
-      <p>From htm, with love</p>
+    <h1>Hello, Preact!</h1>
+    <p>From htm, with love</p>
 
-      <${Switch}>
-        <${Route} path="/"><${GamesList} /><//>
-      <//>
-    </${SWRConfig}>
+    <${Switch}>
+      <${Route} path="/"><${GamesList} /><//>
+    <//>
   `;
 }
 
+function useApi(key) {
+  return useSWR(key, fetcher, { refreshInterval: 10000 });
+}
+
+async function fetcher(key) {
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  console.log(`fetching ${key}`);
+  const res = await fetch(key);
+  return res.json();
+}
+
 function GamesList() {
-  const { data, error } = useSWR("/api/game", (args) => fetch(...args).then(res => res.json()));
+  const { data, error } = ususeApiSWR("/api/game");
   return html`
     <ul>
       <li>Games</li>
       <li>go</li>
       <li>here</li>
     </ul>
-    <pre><code>${JSON.stringify({data, error}, null, 4)}</code></pre>
+    <pre><code>${JSON.stringify({data, error: error?.toString()}, null, 4)}</code></pre>
   `;
 }
 
