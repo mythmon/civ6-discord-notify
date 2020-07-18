@@ -9,11 +9,11 @@ import {
   SWRConfig,
   useRoute
 } from "https://unpkg.com/swree@1.1.0?module";
-import * as dateFns from 'https://cdn.pika.dev/date-fns@^2.14.0';
+import dateFns_formatRelative from 'https://cdn.pika.dev/date-fns@^2.14.0/formatRelative';
 
 function App() {
   return html`
-    <h1>Civilization 6 Game Tracker</h1>
+    <h1><${Link} href="/">Civilization 6 Game Tracker<//></h1>
 
     <${Switch}>
       <${Route} path="/"><${GamesList} /><//>
@@ -98,7 +98,7 @@ function GameDetail({ name }) {
     <p>There are ${players.length} players:</p>
     <ul>${players.map((player) => html`<li>${player}</li>`)}</ul>
     <footer>
-      Last updated at <${Time} datetime=${lastUpdated}/>
+      Last updated <${Time} datetime=${lastUpdated}/>.
     </footer>
   `;
 }
@@ -117,7 +117,7 @@ function toOrdinal(n) {
   return `${n}th`;
 }
 
-function Time({ datetime, options }) {
+function Time({ datetime, relative = true }) {
   if (typeof datetime == 'string') {
     const parsed = new Date(datetime);
     if (!isNaN(parsed)) {
@@ -126,8 +126,13 @@ function Time({ datetime, options }) {
       return html`<time>${datetime}</time>`;
     }
   }
-  const display = datetime.toLocaleString({ timeZoneName: 'short', hour12: false, ...options});
-  return html`<time datetime=${datetime.toISOString()} title=${display}>${display}</time>`;
+  
+  let displayAbsolute = datetime.toLocaleString({ timeZoneName: 'short', hour12: false });
+  let display = displayAbsolute;
+  if (relative) {
+    display = dateFns_formatRelative(datetime, new Date());
+  }
+  return html`<time datetime=${datetime.toISOString()} title=${displayAbsolute}>${display}</time>`;
 }
 
 render(App(), document.querySelector("#target"));
