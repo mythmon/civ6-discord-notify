@@ -36,7 +36,7 @@ const app = express();
 
 app.use(express.json());
 
-const root = __dirname + '/public';
+const root = __dirname + "/public";
 app.use(express.static(root));
 
 app.post("/api/turn/:secretKey", async (request, response) => {
@@ -133,13 +133,9 @@ async function sendTurnNotification({ player, game, turnNumber }) {
 }
 
 app.get("/api/game", async (request, response) => {
-  const gameNames = await db("moves")
-    .distinct("gameName")
-    .pluck("gameName");
+  const games = await db("moves").distinct("gameName");
 
-  response.json({
-    names: gameNames
-  });
+  response.json(games);
 });
 
 app.get("/api/game/:gameName", async (request, response) => {

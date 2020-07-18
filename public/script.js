@@ -2,36 +2,46 @@ import { html, render, useState, Link, Route, Switch, useSWR, SWRConfig } from "
 
 function App() {
   return html`
-    <h1>Hello, Preact!</h1>
-    <p>From htm, with love</p>
+    <h1>Games</h1>
 
     <${Switch}>
       <${Route} path="/"><${GamesList} /><//>
+      <${Route} path="/g/:name"><${GameDetail} /><//>
     <//>
   `;
 }
 
 function useApi(key) {
-  return useSWR(key, fetcher, { refreshInterval: 10000 });
+  return useSWR(key, fetcher, { refreshInterval: 60000 });
 }
 
 async function fetcher(key) {
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  console.log(`fetching ${key}`);
   const res = await fetch(key);
   return res.json();
 }
 
 function GamesList() {
-  const { data, error } = ususeApiSWR("/api/game");
+  const { data: games, error } = useApi("/api/game");
+  
+  if (!games) {
+    return html`<ul><li>...</li></ul>`;
+  }
+  
   return html`
     <ul>
-      <li>Games</li>
-      <li>go</li>
-      <li>here</li>
+      ${games.map((game) => html`
+        <li>
+          <${Link} href=${`/g/${game.gameName}`}>
+            ${game.gameName}
+          <//>
+        </li>
+      `)}
     </ul>
-    <pre><code>${JSON.stringify({data, error: error?.toString()}, null, 4)}</code></pre>
   `;
+}
+
+function GameDetail({ name }) {
+  return "Details for game " + name;
 }
 
 render(App(), document.querySelector("#target"));
