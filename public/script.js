@@ -1,4 +1,14 @@
-import { html, render, useState, Link, Route, Switch, useSWR, SWRConfig } from "https://unpkg.com/swree?module";
+import {
+  html,
+  render,
+  useState,
+  Link,
+  Route as _Route,
+  Switch,
+  useSWR,
+  SWRConfig,
+  useRoute
+} from "https://unpkg.com/swree?module";
 
 function App() {
   return html`
@@ -6,7 +16,20 @@ function App() {
 
     <${Switch}>
       <${Route} path="/"><${GamesList} /><//>
-      <${Route} path="/g/:name"><${GameDetail} /><//>
+      <${Route} path="/g/:name">${GameDetail}<//>
+    <//>
+  `;
+}
+
+function Route({ path, component }) {
+  return html`
+    <${_Route} path=${path}>
+      ${(params) => {
+        const transformedParams = Object.fromEntries(
+          Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)])
+        );
+        return html`<${component} ...${}
+      }}
     <//>
   `;
 }
@@ -22,26 +45,32 @@ async function fetcher(key) {
 
 function GamesList() {
   const { data: games, error } = useApi("/api/game");
-  
+
   if (!games) {
-    return html`<ul><li>...</li></ul>`;
+    return html`
+      <ul>
+        <li>...</li>
+      </ul>
+    `;
   }
-  
+
   return html`
     <ul>
-      ${games.map((game) => html`
-        <li>
-          <${Link} href=${`/g/${game.gameName}`}>
-            ${game.gameName}
-          <//>
-        </li>
-      `)}
+      ${games.map(
+        game => html`
+          <li>
+            <${Link} href=${`/g/${game.gameName}`}>
+              ${game.gameName}
+            <//>
+          </li>
+        `
+      )}
     </ul>
   `;
 }
 
 function GameDetail({ name }) {
-  return "Details for game " + name;
+  return "details for game " + name;
 }
 
 render(App(), document.querySelector("#target"));
