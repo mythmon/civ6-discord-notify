@@ -12,7 +12,7 @@ import {
 
 function App() {
   return html`
-    <h1>Games</h1>
+    <h1>Civilization 6 Game Tracker</h1>
 
     <${Switch}>
       <${Route} path="/"><${GamesList} /><//>
@@ -22,7 +22,6 @@ function App() {
 }
 
 function Route({ path, component, children }) {
-  console.log({path,component,children})
   return html`
     <${_Route} path=${path}>
       ${(params) => {
@@ -77,7 +76,40 @@ function GamesList() {
 }
 
 function GameDetail({ name }) {
-  return "details for game " + name;
+  const { data: detail, error } = useApi(`/api/game/${name}`);
+  
+  const header = html`<h2>Details for ${name}</h2>`;
+  
+  if (error) {
+    return html`${header} <p>${error.toString()}</p>`;
+  }
+  
+  if (!detail) {
+   return html`${header} <p>...</p>`;
+  }
+  
+  const {currentPlayer, turnNumber, lastUpdate, players} = detail;
+  
+  return html`
+    ${header}
+    <p>It's ${currentPlayer}'s ${toOrdinal(turnNumber)} turn.</p>
+    <p>There are ${players.length} players:</p>
+    <ul>${players.map((player) => html`<li>${player}</li>`)}</ul>
+  `;
+}
+
+function toOrdinal(n) {
+  const mod = n % 10;
+  if (mod === 1 && n !== 11) {
+    return `${n}st`;
+  }
+  if (mod === 2 && n !== 12) {
+    return `${n}nd`;
+  }
+  if (mod === 3 && n !== 13) {
+    return `${n}rd`;
+  }
+  return `${n}th`;
 }
 
 render(App(), document.querySelector("#target"));
