@@ -1,3 +1,7 @@
+const fetch = require("node-fetch");
+
+const config = require("./config.js");
+
 module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   let playerMention = player.civName;
   let allowed_mentions = {};
