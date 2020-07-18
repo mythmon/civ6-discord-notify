@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const knex = require("knex");
 const fallback = require("express-history-api-fallback");
 
-const knexConfig = require("./knexfile");
+const knexConfig = require("../knexfile");
 
 function parseConfigMap(configEntry) {
   return configEntry
