@@ -16,19 +16,26 @@ function App() {
 
     <${Switch}>
       <${Route} path="/"><${GamesList} /><//>
-      <${Route} path="/g/:name">${GameDetail}<//>
+      <${Route} path="/g/:name" component=${GameDetail}><//>
     <//>
   `;
 }
 
-function Route({ path, component }) {
+function Route({ path, component, children }) {
+  console.log({path,component,children})
   return html`
     <${_Route} path=${path}>
       ${(params) => {
-        const transformedParams = Object.fromEntries(
-          Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)])
-        );
-        return html`<${component} ...${}
+        if (children && !component) {
+          return html`${children}`;
+        } else if (component) {
+          const transformedParams = Object.fromEntries(
+            Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)])
+          );
+          return html`<${component} ...${transformedParams}>${children}<//>`;
+        } else {
+          throw new Error("Must pass either component or children or both");
+        }
       }}
     <//>
   `;
