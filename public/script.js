@@ -8,8 +8,8 @@ import {
   useSWR,
   SWRConfig,
   useRoute
-} from "https://cdn.pika.dev/swree@1.1.0";
-import formatRelativeDate from 'https://cdn.pika.dev/date-fns@^2.14.0/esm/formatRelative/index.js';
+} from "https://cdn.skypack.dev/pin/swree@v1.1.0-U4pwLD4UrMKQunjfIS9z/min/swree.js";
+import formatRelativeDate from 'https://cdn.skypack.dev/pin/date-fns@v2.15.0-LXaU5g12yoxsEZ8w0n9G/mode=raw,min/esm/formatRelative/index.js';
 
 function App() {
   return html`
