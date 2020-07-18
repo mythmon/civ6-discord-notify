@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.0.1",
   "description": "Receives web hooks from Civilization 6 Play by Cloud and forwards them to Discord with formatting.",
-  "main": "server/main.mjs",
+  "type": "module",
+  "main": "server/main.js",
   "scripts": {
-    "start": "node server/main.mjs"
+    "start": "node server/main.js"
   },
   "dependencies": {
     "express": "^4.17.1",

@@ -1,6 +1,9 @@
-const knexConfig = require("../knexfile");
+import knexConfig from "../knexfile.cjs";
 
-function parseConfigMap(configEntry) {
+function parseConfigMap(configEntry, fallback=[]) {
+  if (typeof configEntry != "string") {
+    return fallback;
+  }
   return configEntry
     .split(",")
     .map(keyAndVal => keyAndVal.split("="))

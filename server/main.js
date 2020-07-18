@@ -1,18 +1,22 @@
-const express = require("express");
-const fetch = require("node-fetch");
-const knex = require("knex");
-const fallback = require("express-history-api-fallback");
+import path from 'path';
+
+import express from "express";
+import fallback from "express-history-api-fallback";
+import fetch from "node-fetch";
 
 import config from "./config.js";
+import { getDb } from "./db.js";
 
-const db = knex(config.db);
+const __dirname = path.resolve(path.dirname(decodeURI(new URL(import.meta.url).pathname)))
+const root = __dirname + "/public";
 
 const app = express();
 
 app.use(express.json());
-
-const root = __dirname + "/public";
 app.use(express.static(root));
+
+// preload database
+getDb();
 
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
@@ -38,6 +42,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
 
   const player = config.players[playerCivName] || { civName: playerCivName };
 
+  const db = await getDb();
   await db("moves").insert({ playerCivName, gameName, turnNumber });
   sendTurnNotification({ player, game, turnNumber });
 
@@ -46,6 +51,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
 });
 
 app.get("/api/game", async (request, response) => {
+  const db = await getDb();
   const games = await db("moves").distinct("gameName");
 
   response.json(games);
@@ -61,6 +67,7 @@ app.get("/api/game/:gameName", async (request, response) => {
     return;
   }
 
+  const db = await getDb();
   const gameMoves = db("moves")
     .where({ gameName })
     .orderBy("receivedAt", "desc");
@@ -90,6 +97,7 @@ app.get("/api/game/:gameName/history", async (request, response) => {
     return;
   }
 
+  const db = await getDb();
   const moves = await db
     .select("*")
     .from("moves")
