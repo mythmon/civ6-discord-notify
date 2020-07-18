@@ -9,7 +9,7 @@ import {
   SWRConfig,
   useRoute
 } from "https://unpkg.com/swree@1.1.0?module";
-import dateFns_formatRelative from 'https://cdn.pika.dev/date-fns@^2.14.0/formatRelative';
+import formatRelativeDate from 'https://cdn.pika.dev/date-fns@^2.14.0/esm/formatRelative/index.js';
 
 function App() {
   return html`
@@ -130,7 +130,7 @@ function Time({ datetime, relative = true }) {
   let displayAbsolute = datetime.toLocaleString({ timeZoneName: 'short', hour12: false });
   let display = displayAbsolute;
   if (relative) {
-    display = dateFns_formatRelative(datetime, new Date());
+    display = formatRelativeDate(datetime, new Date());
   }
   return html`<time datetime=${datetime.toISOString()} title=${displayAbsolute}>${display}</time>`;
 }
