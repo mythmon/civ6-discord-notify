@@ -25,6 +25,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     Value2: playerCivName,
     Value3: turnNumber,
   } = request.body;
+  const { silent = false } = params.query;
 
   if (secretKey !== config.secretKey) {
     console.warn("bad secret", secretKey);
@@ -44,7 +45,10 @@ app.post("/api/turn/:secretKey", async (request, response) => {
 
   const db = await getDb();
   await db("moves").insert({ playerCivName, gameName, turnNumber });
-  sendTurnNotification({ player, game, turnNumber });
+
+  if (!silent) {
+    sendTurnNotification({ player, game, turnNumber });
+  }
 
   response.status(202);
   response.send();
