@@ -1,12 +1,11 @@
-import { h, render } from "https://cdn.pika.dev/preact@^10.0.5/";
-import { useState } from "https://cdn.pika.dev/preact@^10.0.5/hooks";
-import htm from "https://cdn.pika.dev/htm@^2.2.1";
+import { h, render } from "https://cdn.pika.dev/preact@^10.4.4/";
+import { useState } from "https://cdn.pika.dev/preact@^10.4.4/hooks";
+import htm from "https://cdn.pika.dev/htm@^3.0.5";
 import { Link, Route, Switch } from "https://cdn.pika.dev/wouter-preact@^2.4.0";
 
 const html = htm.bind(h);
 
 function App() {
-  console.log(Link, Route, Switch);
   return html`
     <div>
       <h1>Hello, Preact!</h1>
@@ -27,4 +26,4 @@ function GamesList() {
   `;
 }
 
-render(h(App), document.querySelector("#target"));
+render(html`<${App}/>`, document.querySelector("#target"));
