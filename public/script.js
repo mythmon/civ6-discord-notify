@@ -8,7 +8,7 @@ import {
   useSWR,
   SWRConfig,
   useRoute
-} from "https://unpkg.com/swree@1.1.0?module";
+} from "https://cdn.pika.dev/swree@1.1.0";
 import formatRelativeDate from 'https://cdn.pika.dev/date-fns@^2.14.0/esm/formatRelative/index.js';
 
 function App() {
