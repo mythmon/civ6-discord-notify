@@ -9,6 +9,7 @@ import {
   SWRConfig,
   useRoute
 } from "https://unpkg.com/swree@1.1.0?module";
+import * as dateFns from 'https://cdn.pika.dev/date-fns@^2.14.0';
 
 function App() {
   return html`
@@ -89,14 +90,16 @@ function GameDetail({ name }) {
   }
   
   const {currentPlayer, turnNumber, lastUpdated, players} = detail;
-  const lastUpdatedDisplay = new Date(lastUpdated).toLocaleString();
+  const lastUpdatedDisplay = new Date(lastUpdated).toLocaleString(navigator.locale, {timeZoneName: 'short', hour12: false});
   
   return html`
     ${header}
     <p>It's ${currentPlayer}'s ${toOrdinal(turnNumber)} turn.</p>
     <p>There are ${players.length} players:</p>
     <ul>${players.map((player) => html`<li>${player}</li>`)}</ul>
-    <footer>Last updated at ${lastUpdatedDisplay}</footer>
+    <footer>
+      Last updated at <${Time} datetime=${lastUpdated}/>
+    </footer>
   `;
 }
 
@@ -112,6 +115,19 @@ function toOrdinal(n) {
     return `${n}rd`;
   }
   return `${n}th`;
+}
+
+function Time({ datetime, options }) {
+  if (typeof datetime == 'string') {
+    const parsed = new Date(datetime);
+    if (!isNaN(parsed)) {
+      datetime = parsed;
+    } else {
+      return html`<time>${datetime}</time>`;
+    }
+  }
+  const display = datetime.toLocaleString({ timeZoneName: 'short', hour12: false, ...options});
+  return html`<time datetime=${datetime.toISOString()} title=${display}>${display}</time>`;
 }
 
 render(App(), document.querySelector("#target"));
