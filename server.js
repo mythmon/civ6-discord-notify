@@ -92,24 +92,24 @@ async function sendTurnNotification({ player, game, turnNumber }) {
         {
           title: game.name,
           color: 0x05d458,
-          description: `It's ${playerMention}'s move on turn ${turnNumber}`
+          description: `It's ${playerMention}'s turn on round ${turnNumber}.`
         }
       ];
       break;
     }
 
     case "plain": {
-      discordPayload.content = `It's ${playerMention}'s move on ${game.name} turn ${turnNumber}`;
+      discordPayload.content = `It's ${playerMention}'s turn on ${game.name} round ${turnNumber}.`;
       break;
     }
 
     case "hybrid": {
-      discordPayload.content = `It's ${playerMention}'s move`;
+      discordPayload.content = `It's ${playerMention}'s turn.`;
       discordPayload.embeds = [
         {
           title: game.name,
           color: 0x05d458,
-          description: `Turn ${turnNumber}`
+          description: `Round ${turnNumber}`
         }
       ];
       break;
