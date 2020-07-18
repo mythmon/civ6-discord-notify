@@ -8,7 +8,7 @@ import {
   useSWR,
   SWRConfig,
   useRoute
-} from "https://unpkg.com/swree?module";
+} from "https://unpkg.com/swree@1.1.0?module";
 
 function App() {
   return html`
@@ -88,13 +88,15 @@ function GameDetail({ name }) {
    return html`${header} <p>...</p>`;
   }
   
-  const {currentPlayer, turnNumber, lastUpdate, players} = detail;
+  const {currentPlayer, turnNumber, lastUpdated, players} = detail;
+  const lastUpdatedDisplay = new Date(lastUpdated).toLocaleString();
   
   return html`
     ${header}
     <p>It's ${currentPlayer}'s ${toOrdinal(turnNumber)} turn.</p>
     <p>There are ${players.length} players:</p>
     <ul>${players.map((player) => html`<li>${player}</li>`)}</ul>
+    <footer>Last updated at ${lastUpdatedDisplay}</footer>
   `;
 }
 

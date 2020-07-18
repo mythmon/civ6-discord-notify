@@ -163,7 +163,7 @@ app.get("/api/game/:gameName", async (request, response) => {
     players,
     turnNumber: lastNotification.turnNumber,
     currentPlayer: lastNotification.playerCivName,
-    lastUpdated: lastNotification.receivedAt
+    lastUpdated: new Date(lastNotification.receivedAt).toISOString(),
   });
 });
 
