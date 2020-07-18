@@ -1,13 +1,12 @@
-import path from 'path';
+const path = require("path");
 
-import express from "express";
-import fallback from "express-history-api-fallback";
-import fetch from "node-fetch";
+const express = require("express");
+const fallback = require("express-history-api-fallback");
+const fetch = require("node-fetch");
 
-import config from "./config.js";
-import { getDb } from "./db.js";
+const config = require("./config.js");
+const { getDb } = require("./db.js");
 
-const __dirname = path.resolve(path.dirname(decodeURI(new URL(import.meta.url).pathname)))
 const root = __dirname + "/public";
 
 const app = express();
@@ -23,7 +22,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
   const {
     Value1: gameName,
     Value2: playerCivName,
-    Value3: turnNumber
+    Value3: turnNumber,
   } = request.body;
 
   if (secretKey !== config.secretKey) {
@@ -98,13 +97,10 @@ app.get("/api/game/:gameName/history", async (request, response) => {
   }
 
   const db = await getDb();
-  const moves = await db
-    .select("*")
-    .from("moves")
-    .where({ gameName });
+  const moves = await db.select("*").from("moves").where({ gameName });
   response.json({
     name: gameName,
-    turnNotifications: moves
+    turnNotifications: moves,
   });
 });
 

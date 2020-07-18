@@ -1,4 +1,4 @@
-export async function sendTurnNotification({ player, game, turnNumber }) {
+module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   let playerMention = player.civName;
   let allowed_mentions = {};
   const playerObj = config.players[player.civName];
@@ -58,4 +58,4 @@ export async function sendTurnNotification({ player, game, turnNumber }) {
     body: JSON.stringify(discordPayload),
     headers: { "Content-Type": "application/json" }
   });
-}
+};

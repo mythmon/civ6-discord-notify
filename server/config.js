@@ -1,4 +1,4 @@
-import knexConfig from "../knexfile.cjs";
+const knexConfig = require("../knexfile.js");
 
 function parseConfigMap(configEntry, fallback=[]) {
   if (typeof configEntry != "string") {
@@ -10,8 +10,7 @@ function parseConfigMap(configEntry, fallback=[]) {
     .map(([key, val]) => [key.trim(), val.trim()]);
 }
 
-// default export
-const config = {
+module.exports = {
   secretKey: process.env.SECRET_KEY,
   games: Object.fromEntries(
     parseConfigMap(process.env.GAMES_TO_WEBHOOKS).map(([game, webhookUrl]) => [
@@ -28,5 +27,3 @@ const config = {
   messageStyle: process.env.MESSAGE_STYLE || "plain", // embed, plain, or hybrid
   db: knexConfig
 };
-
-export default config;

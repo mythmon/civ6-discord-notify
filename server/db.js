@@ -1,14 +1,14 @@
-import knex from "knex";
+const knex = require("knex");
 
-import config from "./config.js";
+const config = require("./config.js");
 
 let cachedDb = null;
 
-export async function getDb() {
+module.exports.getDb = async () => {
   if (!cachedDb) {
     cachedDb = knex(config.db);
     // Run all the migrations
     await cachedDb.migrate.latest();
   }
   return cachedDb;
-}
+};

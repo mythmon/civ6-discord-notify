@@ -1,4 +1,4 @@
-exports.up = async (knex) => {
+module.exports.up = async (knex) => {
   await knex.schema.createTable('moves', table => {
     table.increments('id');
     table.string('playerCivName');
@@ -8,6 +8,6 @@ exports.up = async (knex) => {
   });
 };
 
-exports.down = async (knex) => {
+module.exports.down = async (knex) => {
   await knex.schema.dropTable('moves');
 };
