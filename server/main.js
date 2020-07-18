@@ -6,6 +6,7 @@ const fetch = require("node-fetch");
 
 const config = require("./config.js");
 const { getDb } = require("./db.js");
+const { sendTurnNotification } = require("./discord.js");
 
 const root = __dirname + "/public";
 
