@@ -1,22 +1,15 @@
+import { h, render} from "https://cdn.pika.dev/preact@^10.4.4";
 import htm from "https://cdn.pika.dev/htm@^3.0.4";
-import { createRouter } from "https://cdn.pika.dev/router5@^7.0.2";
-import browserRouter from "https://cdn.pika.dev/router5-plugin-browser@^7.0.2";
+import wouter from 'https://cdn.pika.dev/wouter-preact@^2.4.0';
 
+const html = htm.bind(h);
 
-const routes = [
-  {name: 'home', path: '/'},
-  {name: 'game', path: '/g/:gameName'},
-];
+function App() {
+  
+  return html`
+    <h1>Hello, Preact!</h1>
+    <p>From htm, with love</p>
+  `;
+}
 
-const router = createRouter();
-
-router.usePlugin(browserRouter());
-
-router.subscribe(({route, previousRoute}) => {
-  console.log("navigated to", {route}, "from", {previousRoute});
-})
-
-router.start();
-console.log(router.getState());
-router.navigate("/");
-console.log(router.getState());
+render(App(), document.querySelector('#target'));
