@@ -24,8 +24,13 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     Value1: gameName,
     Value2: playerCivName,
     Value3: turnNumber,
+    silent = false,
+    receivedAt = null,
   } = request.body;
-  const { silent = false } = params.query;
+
+  if (typeof silent == 'string') {
+    silent = !!JSON.parse(string);
+  }
 
   if (secretKey !== config.secretKey) {
     console.warn("bad secret", secretKey);
