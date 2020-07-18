@@ -38,7 +38,6 @@ app.use(express.json());
 
 const root = __dirname + '/public';
 app.use(express.static(root));
-app.use(fallback("index.html", { root }));
 
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
@@ -191,6 +190,8 @@ app.get("/api/game/:gameName/history", async (request, response) => {
     turnNotifications: moves
   });
 });
+
+app.use(fallback("index.html", { root }));
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, () => {
