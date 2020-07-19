@@ -1,4 +1,5 @@
 dependencies:
+  '@fortawesome/fontawesome-free': 5.14.0
   express: 4.17.1
   express-history-api-fallback: 2.2.1
   knex: 0.21.2
@@ -27,6 +28,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-i6rgnR/YgPEQzZZnbTHHuZdlE8qyoBNalD6F+q4vAFlcMEcqmkoG+mPqJYJCo63qPf74+Y1UZsl3l6f7/RIkmA==
+  /@fortawesome/fontawesome-free/5.14.0:
+    dev: false
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-OfdMsF+ZQgdKHP9jUbmDcRrP0eX90XXrsXIdyjLbkmSBzmMXPABB8eobUJtivaupucYaByz6WNe1PI1JuYm3qA==
   /@types/color-name/1.1.1:
     dev: true
     resolution:
@@ -2523,6 +2530,7 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
+  '@fortawesome/fontawesome-free': ^5.14.0
   eslint: ^7.5.0
   eslint-plugin-node: ^11.1.0
   express: ^4.17.1
