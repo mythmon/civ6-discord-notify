@@ -1,8 +1,5 @@
-const path = require("path");
-
 const express = require("express");
 const fallback = require("express-history-api-fallback");
-const fetch = require("node-fetch");
 
 const config = require("./config.js");
 const { getDb } = require("./db.js");
@@ -20,16 +17,15 @@ getDb();
 
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
-  const {
+  let {
     Value1: gameName,
     Value2: playerCivName,
     Value3: turnNumber,
     silent = false,
-    receivedAt = null,
   } = request.body;
 
   if (typeof silent == 'string') {
-    silent = !!JSON.parse(string);
+    silent = !!JSON.parse(silent);
   }
 
   if (secretKey !== config.secretKey) {

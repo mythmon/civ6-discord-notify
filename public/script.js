@@ -1,13 +1,10 @@
 import {
   html,
   render,
-  useState,
   Link,
   Route as _Route,
   Switch,
   useSWR,
-  SWRConfig,
-  useRoute
 } from "https://cdn.skypack.dev/pin/swree@v1.1.0-U4pwLD4UrMKQunjfIS9z/min/swree.js";
 import formatRelativeDate from 'https://cdn.skypack.dev/pin/date-fns@v2.15.0-LXaU5g12yoxsEZ8w0n9G/mode=raw,min/esm/formatRelative/index.js';
 
@@ -53,6 +50,11 @@ async function fetcher(key) {
 function GamesList() {
   const { data: games, error } = useApi("/api/game");
 
+  if (error) {
+    console.error('GamesList error', error);
+    return html`<p>Error: ${error.toString()}</p>`;
+  }
+
   if (!games) {
     return html`
       <ul>
@@ -90,7 +92,6 @@ function GameDetail({ name }) {
   }
   
   const {currentPlayer, turnNumber, lastUpdated, players} = detail;
-  const lastUpdatedDisplay = new Date(lastUpdated).toLocaleString(navigator.locale, {timeZoneName: 'short', hour12: false});
   
   return html`
     ${header}

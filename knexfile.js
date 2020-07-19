@@ -1,3 +1,4 @@
+/* eslint-env commonjs, node */
 module.exports = {
   client: "sqlite3",
   connection: {

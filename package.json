@@ -15,7 +15,7 @@
     "sqlite3": "^5.0.0"
   },
   "engines": {
-    "node": "12.x"
+    "node": "12.0.0"
   },
   "repository": {
     "url": "https://glitch.com/edit/#!/fungeon-civ6-discord-notify"
@@ -26,5 +26,8 @@
     "glitch",
     "express",
     "civ6"
-  ]
+  ],
+  "devDependencies": {
+    "eslint": "^7.5.0"
+  }
 }
