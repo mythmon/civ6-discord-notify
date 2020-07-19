@@ -14,6 +14,18 @@ const app = express();
 app.use(express.json());
 app.use(express.static(root));
 
+app.use("/fa", (request, response) => {
+  const requestPath = path.normalize(request.path.slice(1));
+  if (requestPath.includes("..")) {
+    response.status(400);
+    response.json({ error: "Path traversal blocked" });
+    return;
+  }
+  const faPath = require.resolve("@fortawesome/fontawesome-free");
+  const filePath = path.normalize(path.join(faPath, "../..", requestPath));
+  response.sendFile(filePath);
+});
+
 // preload database
 getDb();
 
@@ -68,7 +80,7 @@ app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
   const db = await getDb();
-  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
+  const gameMoves = db("moves").where({ gameName });
 
   if (gameMoves.length == 0 && !config.games[gameName]) {
     response.status(404);
@@ -76,8 +88,37 @@ app.get("/api/game/:gameName", async (request, response) => {
     return;
   }
 
-  const lastNotification = await gameMoves.clone().first("*");
-  const players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
+  // The previous turn should be complete
+
+  const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first("*");
+  const playerCount = (await gameMoves.clone().distinct("playerCivName").pluck("playerCivName"))
+    .length;
+  console.log({ playerCount });
+
+  let players = null;
+  let tryTurn = lastNotification.turnNumber - 1;
+  console.log(`Looking for a turn with ${playerCount} players`);
+  while (!players && tryTurn >= 1) {
+    let turnPlayers = await gameMoves
+      .clone()
+      .where({ turnNumber: tryTurn })
+      .orderBy("receivedAt", "ascending")
+      .pluck("playerCivName");
+
+    if (turnPlayers.length == playerCount) {
+      console.log(`turn ${tryTurn} was complete!`);
+      players = turnPlayers;
+      break;
+    } else {
+      tryTurn -= 1;
+    }
+  }
+
+  // No turns were complete? Guess arbitrarily.
+  if (!players) {
+    console.log("no turn was complete, weird");
+    players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
+  }
 
   response.json({
     name: gameName,

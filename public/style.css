@@ -54,3 +54,91 @@ footer {
   padding-top: 1.5em;
   border-top: 1px solid lightgrey;
 }
+
+.round-progress {
+  --v-offset: 35px;
+  --h-spacing: 120px;
+  --margin: 10px;
+  --bubble-size: 25px;
+  --bar-height: 4px;
+  --bar-distance: 8px;
+
+  list-style: none;
+  margin: 0;
+  margin-top: calc(var(--v-offset) + var(--margin));
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.round-progress .turn {
+  display: inline-block;
+  margin: var(--margin);
+  position: relative;
+  text-align: center;
+  flex: 0 0 calc(var(--h-spacing) - calc(var(--margin) * 2));
+}
+
+/* Bubble above names */
+.round-progress .turn::before {
+  content: " ";
+  display: inline-block;
+  border-radius: 100%;
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  position: absolute;
+  left: calc(50% - calc(var(--bubble-size) / 2));
+  top: calc(-1 * var(--v-offset));
+  box-sizing: border-box;
+
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+}
+
+/* Bars between names, bars go to the left of the bubble */
+.round-progress .turn:not(:first-child)::after {
+  content: " ";
+  display: inline-block;
+  width: calc(var(--h-spacing) - var(--bubble-size) - var(--bar-distance) * 2);
+  height: var(--bar-height);
+  position: absolute;
+  top: calc(var(--bubble-size) / 2 - var(--v-offset) - var(--bar-distance) / 4);
+  left: calc(var(--h-spacing) / -2 + 2.5px + var(--bar-distance));
+}
+
+.round-progress .turn-previous::before {
+  background-color: green;
+  color: white;
+  padding-top: 1px;
+  content: "\f00c"; /* fas fa-checkmark */
+}
+
+.round-progress .turn-previous::after {
+  background-color: green;
+}
+
+.round-progress .turn-current::before {
+  border: 2px solid green;
+  /* width: calc(var(--bubble-size) * 1.5);
+  height: calc(var(--bubble-size) * 1.5); */
+  font-size: 0.9em;
+  content: "\f252"; /* fas fa-hourglass-half */
+  line-height: 150%;
+  padding-left: 1.5px;
+}
+
+.round-progress .turn-current::after {
+  background-color: green;
+}
+
+.round-progress .turn-upcoming::before {
+  border: 2px solid #585;
+}
+
+.round-progress .turn-upcoming::after {
+  background: #ddd;
+}
