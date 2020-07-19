@@ -1,3 +1,5 @@
+const path = require("path");
+
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 
@@ -5,7 +7,7 @@ const config = require("./config.js");
 const { getDb } = require("./db.js");
 const { sendTurnNotification } = require("./discord.js");
 
-const root = __dirname + "/public";
+const root = path.resolve(__dirname + "/../public");
 
 const app = express();
 
@@ -65,15 +67,14 @@ app.get("/api/game", async (request, response) => {
 app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
-  const game = config.games[gameName];
-  if (!game) {
+  const db = await getDb();
+  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
+
+  if (gameMoves.length == 0 && !config.games[gameName]) {
     response.status(404);
     response.json({ error: `Unknown game "${gameName}"` });
     return;
   }
-
-  const db = await getDb();
-  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
 
   const lastNotification = await gameMoves.clone().first("*");
   const players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
@@ -108,6 +109,6 @@ app.get("/api/game/:gameName/history", async (request, response) => {
 app.use(fallback("index.html", { root }));
 
 // listen for requests :)
-const listener = app.listen(process.env.PORT, () => {
+const listener = app.listen(config.port, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });

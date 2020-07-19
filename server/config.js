@@ -26,4 +26,5 @@ module.exports = {
   ),
   messageStyle: process.env.MESSAGE_STYLE || "plain", // embed, plain, or hybrid
   db: knexConfig,
+  port: process.env.PORT || 3000,
 };

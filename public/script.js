@@ -44,7 +44,11 @@ function useApi(key) {
 
 async function fetcher(key) {
   const res = await fetch(key);
-  return res.json();
+  const data = await res.json();
+  if (data.error) {
+    throw new Error(data.error);
+  }
+  return data;
 }
 
 function GamesList() {
