@@ -85,29 +85,50 @@ function GamesList() {
 function GameDetail({ name }) {
   const { data: detail, error } = useApi(`/api/game/${name}`);
 
-  const header = html`<h2>Details for ${name}</h2>`;
-
   if (error) {
-    return html`${header}
-      <p>${error.toString()}</p>`;
+    return html`
+      <h2>${name}</h2>
+      <p>${error.toString()}</p>
+    `;
   }
 
   if (!detail) {
-    return html`${header}
-      <p>...</p>`;
+    return html`
+      <h2>${name}</h2>
+      <p>...</p>
+    `;
   }
 
   const { currentPlayer, turnNumber, lastUpdated, players } = detail;
 
   return html`
-    ${header}
-    <p>It's ${currentPlayer}'s ${toOrdinal(turnNumber)} turn.</p>
-    <p>There are ${players.length} players:</p>
-    <ul>
-      ${players.map((player) => html`<li>${player}</li>`)}
-    </ul>
+    <h2>${name} - Turn ${turnNumber}</h2>
+    <${RoundProgress} players=${players} currentPlayer=${currentPlayer} />
     <footer>Last updated <${Time} datetime=${lastUpdated} />.</footer>
   `;
+}
+
+function RoundProgress({ players, currentPlayer }) {
+  let foundCurrent = false;
+
+  return html`<ul class="round-progress">
+    ${players.map((player) => {
+      let status;
+
+      if (foundCurrent) {
+        status = "upcoming";
+      } else {
+        if (player == currentPlayer) {
+          foundCurrent = true;
+          status = "current";
+        } else {
+          status = "previous";
+        }
+      }
+
+      return html`<li class="turn turn-${status}">${player}</li>`;
+    })}
+  </ul> `;
 }
 
 function toOrdinal(n) {
