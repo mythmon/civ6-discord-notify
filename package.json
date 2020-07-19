@@ -12,7 +12,7 @@
     "express-history-api-fallback": "^2.2.1",
     "knex": "^0.21.2",
     "node-fetch": "^2.6.0",
-    "sqlite3": "^5.0.0"
+    "sqlite3": "^4.2.0"
   },
   "engines": {
     "node": "12.0.0"
@@ -29,6 +29,7 @@
   ],
   "devDependencies": {
     "eslint": "^7.5.0",
-    "eslint-plugin-node": "^11.1.0"
+    "eslint-plugin-node": "^11.1.0",
+    "prettier": "2.0.5"
   }
 }

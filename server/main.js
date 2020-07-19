@@ -24,7 +24,7 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     silent = false,
   } = request.body;
 
-  if (typeof silent == 'string') {
+  if (typeof silent == "string") {
     silent = !!JSON.parse(silent);
   }
 
@@ -73,15 +73,10 @@ app.get("/api/game/:gameName", async (request, response) => {
   }
 
   const db = await getDb();
-  const gameMoves = db("moves")
-    .where({ gameName })
-    .orderBy("receivedAt", "desc");
+  const gameMoves = db("moves").where({ gameName }).orderBy("receivedAt", "desc");
 
   const lastNotification = await gameMoves.clone().first("*");
-  const players = await gameMoves
-    .clone()
-    .distinct("playerCivName")
-    .pluck("playerCivName");
+  const players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
 
   response.json({
     name: gameName,

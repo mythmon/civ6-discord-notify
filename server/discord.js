@@ -15,7 +15,7 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     username: "Civilization VI",
     avatar_url:
       "https://cdn.glitch.com/72884494-98c1-49e5-a144-3cc3e5f2a6a3%2Fciv6%20icon.jpg?v=1594946929396",
-    allowed_mentions
+    allowed_mentions,
   };
 
   switch (config.messageStyle) {
@@ -24,8 +24,8 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
         {
           title: game.name,
           color: 0x05d458,
-          description: `It's ${playerMention}'s turn on round ${turnNumber}.`
-        }
+          description: `It's ${playerMention}'s turn on round ${turnNumber}.`,
+        },
       ];
       break;
     }
@@ -41,8 +41,8 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
         {
           title: game.name,
           color: 0x05d458,
-          description: `Round ${turnNumber}`
-        }
+          description: `Round ${turnNumber}`,
+        },
       ];
       break;
     }
@@ -60,6 +60,6 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   const res = await fetch(url, {
     method: "post",
     body: JSON.stringify(discordPayload),
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
 };

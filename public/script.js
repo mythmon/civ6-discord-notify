@@ -6,7 +6,7 @@ import {
   Switch,
   useSWR,
 } from "https://cdn.skypack.dev/pin/swree@v1.1.0-U4pwLD4UrMKQunjfIS9z/min/swree.js";
-import formatRelativeDate from 'https://cdn.skypack.dev/pin/date-fns@v2.15.0-LXaU5g12yoxsEZ8w0n9G/mode=raw,min/esm/formatRelative/index.js';
+import formatRelativeDate from "https://cdn.skypack.dev/pin/date-fns@v2.15.0-LXaU5g12yoxsEZ8w0n9G/mode=raw,min/esm/formatRelative/index.js";
 
 function App() {
   return html`
@@ -51,7 +51,7 @@ function GamesList() {
   const { data: games, error } = useApi("/api/game");
 
   if (error) {
-    console.error('GamesList error', error);
+    console.error("GamesList error", error);
     return html`<p>Error: ${error.toString()}</p>`;
   }
 
@@ -66,7 +66,7 @@ function GamesList() {
   return html`
     <ul>
       ${games.map(
-        game => html`
+        (game) => html`
           <li>
             <${Link} href=${`/g/${game.gameName}`}>
               ${game.gameName}
@@ -80,27 +80,29 @@ function GamesList() {
 
 function GameDetail({ name }) {
   const { data: detail, error } = useApi(`/api/game/${name}`);
-  
+
   const header = html`<h2>Details for ${name}</h2>`;
-  
+
   if (error) {
-    return html`${header} <p>${error.toString()}</p>`;
+    return html`${header}
+      <p>${error.toString()}</p>`;
   }
-  
+
   if (!detail) {
-   return html`${header} <p>...</p>`;
+    return html`${header}
+      <p>...</p>`;
   }
-  
-  const {currentPlayer, turnNumber, lastUpdated, players} = detail;
-  
+
+  const { currentPlayer, turnNumber, lastUpdated, players } = detail;
+
   return html`
     ${header}
     <p>It's ${currentPlayer}'s ${toOrdinal(turnNumber)} turn.</p>
     <p>There are ${players.length} players:</p>
-    <ul>${players.map((player) => html`<li>${player}</li>`)}</ul>
-    <footer>
-      Last updated <${Time} datetime=${lastUpdated}/>.
-    </footer>
+    <ul>
+      ${players.map((player) => html`<li>${player}</li>`)}
+    </ul>
+    <footer>Last updated <${Time} datetime=${lastUpdated} />.</footer>
   `;
 }
 
@@ -119,7 +121,7 @@ function toOrdinal(n) {
 }
 
 function Time({ datetime, relative = true }) {
-  if (typeof datetime == 'string') {
+  if (typeof datetime == "string") {
     const parsed = new Date(datetime);
     if (!isNaN(parsed)) {
       datetime = parsed;
@@ -127,8 +129,11 @@ function Time({ datetime, relative = true }) {
       return html`<time>${datetime}</time>`;
     }
   }
-  
-  let displayAbsolute = datetime.toLocaleString({ timeZoneName: 'short', hour12: false });
+
+  let displayAbsolute = datetime.toLocaleString({
+    timeZoneName: "short",
+    hour12: false,
+  });
   let display = displayAbsolute;
   if (relative) {
     display = formatRelativeDate(datetime, new Date());

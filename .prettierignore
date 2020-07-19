@@ -1,0 +1,6 @@
+.sqlite_history
+.vscode
+.data
+.env
+node_modules
+npm-debug.log
