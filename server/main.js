@@ -1,5 +1,6 @@
 const path = require("path");
 
+const cors = require("cors");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 
@@ -11,6 +12,7 @@ const root = path.resolve(__dirname + "/../public");
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.static(root));
 
