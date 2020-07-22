@@ -95,11 +95,9 @@ app.get("/api/game/:gameName", async (request, response) => {
   const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first("*");
   const playerCount = (await gameMoves.clone().distinct("playerCivName").pluck("playerCivName"))
     .length;
-  console.log({ playerCount });
 
   let players = null;
   let tryTurn = lastNotification.turnNumber - 1;
-  console.log(`Looking for a turn with ${playerCount} players`);
   while (!players && tryTurn >= 1) {
     let turnPlayers = await gameMoves
       .clone()
@@ -108,7 +106,6 @@ app.get("/api/game/:gameName", async (request, response) => {
       .pluck("playerCivName");
 
     if (turnPlayers.length == playerCount) {
-      console.log(`turn ${tryTurn} was complete!`);
       players = turnPlayers;
       break;
     } else {
