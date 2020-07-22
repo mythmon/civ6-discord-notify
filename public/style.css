@@ -111,20 +111,18 @@ footer {
 }
 
 .round-progress .turn-previous::before {
-  background-color: green;
+  background-color: #2ca02c;
   color: white;
   padding-top: 1px;
   content: "\f00c"; /* fas fa-checkmark */
 }
 
 .round-progress .turn-previous::after {
-  background-color: green;
+  background-color: #2ca02c;
 }
 
 .round-progress .turn-current::before {
-  border: 2px solid green;
-  /* width: calc(var(--bubble-size) * 1.5);
-  height: calc(var(--bubble-size) * 1.5); */
+  border: 2px solid #2ca02c;
   font-size: 0.9em;
   content: "\f252"; /* fas fa-hourglass-half */
   line-height: 150%;
@@ -132,7 +130,7 @@ footer {
 }
 
 .round-progress .turn-current::after {
-  background-color: green;
+  background-color: #2ca02c;
 }
 
 .round-progress .turn-upcoming::before {
@@ -141,4 +139,11 @@ footer {
 
 .round-progress .turn-upcoming::after {
   background: #ddd;
+}
+
+.swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin: 2px;
 }

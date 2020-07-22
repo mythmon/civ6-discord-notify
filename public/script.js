@@ -5,8 +5,12 @@ import {
   Route as _Route,
   Switch,
   useSWR,
-} from "https://cdn.skypack.dev/pin/swree@v1.1.0-U4pwLD4UrMKQunjfIS9z/min/swree.js";
-import formatRelativeDate from "https://cdn.skypack.dev/pin/date-fns@v2.15.0-LXaU5g12yoxsEZ8w0n9G/mode=raw,min/esm/formatRelative/index.js";
+} from "https://cdn.skypack.dev/swree@^1.1.0/";
+import * as d3 from "https://cdn.skypack.dev/d3@^5.16.0/";
+
+import dateFns from "./datefns.js";
+
+render(App(), document.querySelector("#target"));
 
 function App() {
   return html`
@@ -39,11 +43,16 @@ function Route({ path, component, children }) {
 }
 
 function useApi(key) {
-  return useSWR(key, fetcher, { refreshInterval: 60000 });
+  const minute = 60 * 1000;
+  return useSWR(key, fetcher, { refreshInterval: 5 * minute });
 }
 
 async function fetcher(key) {
-  const res = await fetch(key);
+  // debug
+  const url = new URL("https://fungeon-civ6-discord-notify.glitch.me");
+  url.pathname = key;
+
+  const res = await fetch(url);
   const data = await res.json();
   if (data.error) {
     throw new Error(data.error);
@@ -104,6 +113,7 @@ function GameDetail({ name }) {
   return html`
     <h2>${name} - Turn ${turnNumber}</h2>
     <${RoundProgress} players=${players} currentPlayer=${currentPlayer} />
+    <${TurnChart} gameName=${name} />
     <footer>Last updated <${Time} datetime=${lastUpdated} />.</footer>
   `;
 }
@@ -131,20 +141,6 @@ function RoundProgress({ players, currentPlayer }) {
   </ul> `;
 }
 
-function toOrdinal(n) {
-  const mod = n % 10;
-  if (mod === 1 && n !== 11) {
-    return `${n}st`;
-  }
-  if (mod === 2 && n !== 12) {
-    return `${n}nd`;
-  }
-  if (mod === 3 && n !== 13) {
-    return `${n}rd`;
-  }
-  return `${n}th`;
-}
-
 function Time({ datetime, relative = true }) {
   if (typeof datetime == "string") {
     const parsed = new Date(datetime);
@@ -161,9 +157,88 @@ function Time({ datetime, relative = true }) {
   });
   let display = displayAbsolute;
   if (relative) {
-    display = formatRelativeDate(datetime, new Date());
+    display = dateFns.formatRelative(datetime, new Date());
   }
   return html`<time datetime=${datetime.toISOString()} title=${displayAbsolute}>${display}</time>`;
 }
 
-render(App(), document.querySelector("#target"));
+function TurnChart({ gameName }) {
+  const { data: history, error } = useApi(`/api/game/${gameName}/history`);
+
+  if (error) {
+    return html`<div>${error.toString}</div>`;
+  }
+
+  if (!history) {
+    return null;
+  }
+
+  const margin = { top: 30, right: 10, bottom: 20, left: 10 };
+  const width = 500;
+  const height = 400;
+
+  const { turnNotifications } = history;
+  for (const notif of turnNotifications) {
+    if (!notif.receivedAt.endsWith("Z")) {
+      notif.receivedAt += "Z";
+    }
+    notif.receivedAt = new Date(notif.receivedAt);
+  }
+
+  let bins = {};
+  const names = [];
+  for (const notif of turnNotifications) {
+    let hour = notif.receivedAt.getHours();
+    if (!bins[hour]) {
+      bins[hour] = [];
+    }
+    bins[hour].push({ hour: hour, player: notif.playerCivName, rank: bins[hour].length });
+    if (!names.includes(notif.playerCivName)) {
+      names.push(notif.playerCivName);
+    }
+  }
+  const data = Object.values(bins).flatMap((x) => x);
+
+  const x = d3
+    .scaleLinear()
+    .domain([0, 24])
+    .range([margin.left, width - margin.right]);
+  const y = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, (d) => d.rank)])
+    .range([height - margin.bottom, margin.top]);
+
+  const colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+  const size = Math.min(x(1) - x(0), y(0) - y(1)) - 1;
+
+  const xAxis = d3.axisBottom(x);
+
+  return html`
+    <p>Colored by who's turn <b>is starting</b></p>
+    <div>
+      ${names.map(
+        (name) =>
+          html`<span><span class="swatch" style=${{ backgroundColor: colors(name) }} />${name}<//>`
+      )}
+    </div>
+    <svg width=${width} height=${height}>
+      ${data.map(
+        (d, idx) => html`
+          <rect
+            key=${idx}
+            x=${x(d.hour)}
+            y=${y(d.rank) - size}
+            width=${size}
+            height=${size}
+            fill=${colors(d.player)}
+          />
+        `
+      )}
+      <g
+        transform="translate(0, ${height - margin.bottom})"
+        ref=${(g) => d3.select(g).call(xAxis)}
+      />
+    </svg>
+  `;
+}
