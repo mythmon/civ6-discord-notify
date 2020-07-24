@@ -5,6 +5,7 @@ import {
   Route as _Route,
   Switch,
   useSWR,
+  useState,
 } from "https://cdn.skypack.dev/swree@^1.1.0/";
 import * as d3 from "https://cdn.skypack.dev/d3@^5.16.0/";
 
@@ -113,7 +114,7 @@ function GameDetail({ name }) {
   return html`
     <h2>${name} - Turn ${turnNumber}</h2>
     <${RoundProgress} players=${players} currentPlayer=${currentPlayer} />
-    <${TurnChart} gameName=${name} />
+    <${TurnDensityChart} gameName=${name} />
     <footer>Last updated <${Time} datetime=${lastUpdated} />.</footer>
   `;
 }
@@ -162,8 +163,14 @@ function Time({ datetime, relative = true }) {
   return html`<time datetime=${datetime.toISOString()} title=${displayAbsolute}>${display}</time>`;
 }
 
-function TurnChart({ gameName }) {
+function TurnDensityChart({ gameName }) {
   const { data: history, error } = useApi(`/api/game/${gameName}/history`);
+  const { slider: kernelSlider, value: kernelParameter } = useSlider({
+    min: 0.05,
+    max: 3,
+    step: 0.05,
+    defaultValue: 1.3,
+  });
 
   if (error) {
     return html`<div>${error.toString}</div>`;
@@ -174,45 +181,71 @@ function TurnChart({ gameName }) {
   }
 
   const margin = { top: 30, right: 10, bottom: 20, left: 10 };
-  const width = 500;
+  const width = 800;
   const height = 400;
 
   const { turnNotifications } = history;
-  for (const notif of turnNotifications) {
-    if (!notif.receivedAt.endsWith("Z")) {
-      notif.receivedAt += "Z";
-    }
-    notif.receivedAt = new Date(notif.receivedAt);
-  }
-
-  let bins = {};
   const names = [];
   for (const notif of turnNotifications) {
-    let hour = notif.receivedAt.getHours();
-    if (!bins[hour]) {
-      bins[hour] = [];
+    if (typeof notif.receivedAt == "string") {
+      if (!notif.receivedAt.endsWith("Z")) {
+        notif.receivedAt += "Z";
+      }
+      notif.receivedAt = new Date(notif.receivedAt);
     }
-    bins[hour].push({ hour: hour, player: notif.playerCivName, rank: bins[hour].length });
+
+    if (notif.fractionOfDay == undefined) {
+      notif.fractionOfDay =
+        notif.receivedAt.getHours() / 24 +
+        notif.receivedAt.getMinutes() / (24 * 60) +
+        notif.receivedAt.getSeconds() / (24 * 60 * 60);
+    }
+
     if (!names.includes(notif.playerCivName)) {
       names.push(notif.playerCivName);
     }
   }
-  const data = Object.values(bins).flatMap((x) => x);
 
   const x = d3
     .scaleLinear()
     .domain([0, 24])
     .range([margin.left, width - margin.right]);
-  const y = d3
+  const xAxis = d3.axisBottom(x);
+
+  const kde = kernelDensityEstimator(kernelEpanechnikov(kernelParameter), x.ticks(40));
+  const combinedDensity = kde(turnNotifications.map((notif) => notif.fractionOfDay * 24));
+
+  const densityByPlayer = [];
+  for (const name of names) {
+    densityByPlayer.push([
+      name,
+      kde(
+        turnNotifications
+          .filter((notif) => notif.playerCivName == name)
+          .map((notif) => notif.fractionOfDay * 24)
+      ),
+    ]);
+  }
+
+  const allDensities = densityByPlayer.flatMap(([, d]) => d).concat(combinedDensity);
+
+  const densityY = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.rank)])
+    .domain([0, d3.max(allDensities, (d) => d[1])])
     .range([height - margin.bottom, margin.top]);
 
   const colors = d3.scaleOrdinal(d3.schemeCategory10);
-
-  const size = Math.min(x(1) - x(0), y(0) - y(1)) - 1;
-
-  const xAxis = d3.axisBottom(x);
+  const overallCurve = d3
+    .area()
+    .curve(d3.curveBasis)
+    .x((d) => x(d[0]))
+    .y0(densityY(0))
+    .y1((d) => densityY(d[1]));
+  const playerCurve = d3
+    .line()
+    .curve(d3.curveBasis)
+    .x((d) => x(d[0]))
+    .y((d) => densityY(d[1]));
 
   return html`
     <p>Colored by who's turn <b>is starting</b></p>
@@ -222,16 +255,30 @@ function TurnChart({ gameName }) {
           html`<span><span class="swatch" style=${{ backgroundColor: colors(name) }} />${name}<//>`
       )}
     </div>
+    <div>${kernelParameter} ${kernelSlider}</div>
     <svg width=${width} height=${height}>
-      ${data.map(
-        (d, idx) => html`
-          <rect
-            key=${idx}
-            x=${x(d.hour)}
-            y=${y(d.rank) - size}
-            width=${size}
-            height=${size}
-            fill=${colors(d.player)}
+      <path fill="#ccc" d=${overallCurve(combinedDensity)} />
+      ${densityByPlayer.map(
+        ([player, density]) =>
+          html`
+            <path
+              fill="none"
+              stroke=${colors(player)}
+              stroke-width="2"
+              opacity="0.5"
+              d=${playerCurve(density)}
+            />
+          `
+      )}
+      ${turnNotifications.map(
+        (notif) => html`
+          <line
+            x1=${x(notif.fractionOfDay * 24)}
+            x2=${x(notif.fractionOfDay * 24)}
+            y1=${height - margin.bottom}
+            y2=${height}
+            stroke=${colors(notif.playerCivName)}
+            opacity="0.8"
           />
         `
       )}
@@ -241,4 +288,37 @@ function TurnChart({ gameName }) {
       />
     </svg>
   `;
+}
+
+// Function to compute density
+function kernelDensityEstimator(kernel, xPoints) {
+  return (data) => {
+    return xPoints.map((x) => [x, d3.mean(data, (v) => kernel(x - v))]);
+  };
+}
+
+function kernelEpanechnikov(k) {
+  return (v) => {
+    return Math.abs((v /= k)) <= 1 ? (0.75 * (1 - v * v)) / k : 0;
+  };
+}
+
+function useSlider({ min, max, step, defaultValue }) {
+  if (min >= max) {
+    throw new Error("min must be less than max");
+  }
+  const [value, setValue] = useState(defaultValue ?? min + (max - min) / 2);
+  const slider = html`<input
+    type="range"
+    min=${min}
+    max=${max}
+    step=${step}
+    value=${value}
+    onInput=${(ev) => {
+      console.log("slider onInput", ev);
+      setValue(ev.target.valueAsNumber);
+    }}
+  />`;
+
+  return { slider, value };
 }
