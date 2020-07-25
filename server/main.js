@@ -3,6 +3,7 @@ const path = require("path");
 const cors = require("cors");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
+const csvStringify = require("csv-stringify");
 
 const config = require("./config.js");
 const { getDb } = require("./db.js");
@@ -128,8 +129,8 @@ app.get("/api/game/:gameName", async (request, response) => {
   });
 });
 
-app.get("/api/game/:gameName/history", async (request, response) => {
-  const { gameName } = request.params;
+app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
+  const { gameName, ext } = request.params;
 
   const game = config.games[gameName];
   if (!game) {
@@ -140,10 +141,23 @@ app.get("/api/game/:gameName/history", async (request, response) => {
 
   const db = await getDb();
   const moves = await db.select("*").from("moves").where({ gameName });
-  response.json({
-    name: gameName,
-    turnNotifications: moves,
-  });
+
+  for (const move of moves) {
+    let d = new Date(move.receivedAt);
+    move.receivedAt = d.toISOString();
+  }
+
+  if (ext == null || ext == "json") {
+    response.json({
+      name: gameName,
+      turnNotifications: moves,
+    });
+  } else if (ext == "csv") {
+    csvStringify(moves, { header: true }).pipe(response);
+  } else {
+    response.status(400);
+    response.send(`Unknown extension ${ext}`);
+  }
 });
 
 app.use(fallback("index.html", { root }));
