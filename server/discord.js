@@ -36,12 +36,12 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     }
 
     case "hybrid": {
-      discordPayload.content = `It's ${playerMention}'s turn.`;
+      discordPayload.content = `It's ${playerMention}'s turn on ${game.name}.`;
       discordPayload.embeds = [
         {
           title: game.name,
           color: 0x05d458,
-          description: `Round ${turnNumber}`,
+          fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
       ];
       break;
@@ -56,10 +56,12 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
 
   const url = new URL(game.webhookUrl);
   url.searchParams.set("wait", true);
+  const body = JSON.stringify(discordPayload);
   console.log("POST", url.toString());
+  console.log("::", body);
   const res = await fetch(url, {
     method: "post",
-    body: JSON.stringify(discordPayload),
+    body,
     headers: { "Content-Type": "application/json" },
   });
 };
