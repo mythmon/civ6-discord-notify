@@ -10,6 +10,9 @@ const { sendTurnNotification } = require("./discord.js");
 
 const root = path.resolve(__dirname + "/../public");
 
+// preload database
+getDb();
+
 const app = express();
 
 app.use(cors());
@@ -27,9 +30,6 @@ app.use("/fa", (request, response) => {
   const filePath = path.normalize(path.join(faPath, "../..", requestPath));
   response.sendFile(filePath);
 });
-
-// preload database
-getDb();
 
 app.post("/api/turn/:secretKey", async (request, response) => {
   const { secretKey } = request.params;
@@ -150,5 +150,5 @@ app.use(fallback("index.html", { root }));
 
 // listen for requests :)
 const listener = app.listen(config.port, () => {
-  console.log("Your app is listening on port " + listener.address().port);
+  console.log("Your app is listening on port " + listener.address().port, new Date());
 });
