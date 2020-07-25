@@ -1,6 +1,7 @@
 dependencies:
   '@fortawesome/fontawesome-free': 5.14.0
   cors: 2.8.5
+  csv-stringify: 5.5.0
   express: 4.17.1
   express-history-api-fallback: 2.2.1
   knex: 0.21.2
@@ -430,6 +431,10 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==
+  /csv-stringify/5.5.0:
+    dev: false
+    resolution:
+      integrity: sha512-G05575DSO/9vFzQxZN+Srh30cNyHk0SM0ePyiTChMD5WVt7GMTVPBQf4rtgMF6mqhNCJUPw4pN8LDe8MF9EYOA==
   /debug/2.6.9:
     dependencies:
       ms: 2.0.0
@@ -2542,6 +2547,7 @@ shrinkwrapVersion: 3
 specifiers:
   '@fortawesome/fontawesome-free': ^5.14.0
   cors: ^2.8.5
+  csv-stringify: ^5.5.0
   eslint: ^7.5.0
   eslint-plugin-node: ^11.1.0
   express: ^4.17.1
