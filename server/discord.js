@@ -58,10 +58,11 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   url.searchParams.set("wait", true);
   const body = JSON.stringify(discordPayload);
   console.log("POST", url.toString());
-  console.log("::", body);
+  console.log("::>", body);
   const res = await fetch(url, {
     method: "post",
     body,
     headers: { "Content-Type": "application/json" },
   });
+  console.log("::<", res.status, await res.text());
 };
