@@ -64,5 +64,6 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     body,
     headers: { "Content-Type": "application/json" },
   });
-  console.log("::<", res.status, await res.text());
+  console.log("::<", res.status, "\n", res.headers.raw());
+  console.log("::<", await res.text());
 };
