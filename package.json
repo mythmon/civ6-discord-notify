@@ -5,7 +5,8 @@
   "description": "Receives web hooks from Civilization 6 Play by Cloud and forwards them to Discord with formatting.",
   "main": "server/main.js",
   "scripts": {
-    "start": "node server/main.js"
+    "start": "node server/main.js",
+    "dev": "nodemon -i public -L"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "eslint": "^7.5.0",
     "eslint-plugin-node": "^11.1.0",
+    "nodemon": "^2.0.4",
     "prettier": "2.0.5"
   }
 }

@@ -48,8 +48,6 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     }
 
     default: {
-      res.status(500);
-      res.send();
       throw new Error(`Unknown messageStyle ${config.messageStyle}`);
     }
   }
@@ -57,13 +55,42 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   const url = new URL(game.webhookUrl);
   url.searchParams.set("wait", true);
   const body = JSON.stringify(discordPayload);
-  console.log("POST", url.toString());
-  console.log("::>", body);
-  const res = await fetch(url, {
-    method: "post",
-    body,
-    headers: { "Content-Type": "application/json" },
-  });
-  console.log("::<", res.status, "\n", res.headers.raw());
-  console.log("::<", await res.text());
+
+  const maxAttemps = 3;
+  let success = false;
+  let res;
+  console.log(
+    `Sending Discord notification to ${player.civName} for game ${game.name} turn ${turnNumber}`
+  );
+  for (let attemptNumber = 0; attemptNumber < maxAttemps; attemptNumber++) {
+    res = await fetch(url, {
+      method: "post",
+      body,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (res.status == 200) {
+      success = true;
+      break;
+    } else if (res.status == 429 && attemptNumber + 1 < maxAttemps) {
+      const retrySec = res.headers.get("x-ratelimit-reset-after") || 1;
+      console.log(
+        `Rate limited. Waiting ${retrySec} seconds to retry for ${player.civName}, attempt ${
+          attemptNumber + 2
+        } of ${maxAttemps}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, retrySec * 1000));
+    } else {
+      throw new Error(
+        `Unexpected response from Discord notification:\n` +
+          `:: Status: ${res.status} \n` +
+          `:: Headers: ${JSON.stringify(res.headers.raw())}\n` +
+          `:: Body: ${await res.text()}`
+      );
+    }
+  }
+
+  if (!success) {
+    throw new Error("Could not send notification:", await res.text());
+  }
 };

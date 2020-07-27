@@ -64,12 +64,16 @@ app.post("/api/turn/:secretKey", async (request, response) => {
   const db = await getDb();
   await db("moves").insert({ playerCivName, gameName, turnNumber });
 
-  if (!silent) {
-    sendTurnNotification({ player, game, turnNumber });
-  }
-
   response.status(202);
   response.send();
+
+  if (!silent) {
+    try {
+      await sendTurnNotification({ player, game, turnNumber });
+    } catch (err) {
+      console.error("Could not send Discord notification", err.toString());
+    }
+  }
 });
 
 app.get("/api/game", async (request, response) => {
