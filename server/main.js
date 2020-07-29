@@ -96,32 +96,38 @@ app.get("/api/game/:gameName", async (request, response) => {
   }
 
   // The previous turn should be complete
-
   const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first("*");
-  const playerCount = (await gameMoves.clone().distinct("playerCivName").pluck("playerCivName"))
-    .length;
 
   let players = null;
-  let tryTurn = lastNotification.turnNumber - 1;
-  while (!players && tryTurn >= 1) {
-    let turnPlayers = await gameMoves
-      .clone()
-      .where({ turnNumber: tryTurn })
-      .orderBy("receivedAt", "ascending")
-      .pluck("playerCivName");
 
-    if (turnPlayers.length == playerCount) {
-      players = turnPlayers;
-      break;
-    } else {
-      tryTurn -= 1;
+  if (lastNotification.turnNumber > 1) {
+    const playerCount = (await gameMoves.clone().distinct("playerCivName").pluck("playerCivName"))
+      .length;
+
+    let tryTurn = lastNotification.turnNumber - 1;
+    while (!players && tryTurn >= 1) {
+      let turnPlayers = await gameMoves
+        .clone()
+        .where({ turnNumber: tryTurn })
+        .orderBy("receivedAt", "ascending")
+        .pluck("playerCivName");
+
+      if (turnPlayers.length == playerCount) {
+        players = turnPlayers;
+        break;
+      } else {
+        tryTurn -= 1;
+      }
     }
   }
 
-  // No turns were complete? Guess arbitrarily.
+  // No turns were complete? Guess by received date.
   if (!players) {
-    console.log("no turn was complete, weird");
-    players = await gameMoves.clone().distinct("playerCivName").pluck("playerCivName");
+    players = await gameMoves
+      .clone()
+      .orderBy("receivedAt", "ascending")
+      .distinct("playerCivName")
+      .pluck("playerCivName");
   }
 
   response.json({
