@@ -1,16 +1,13 @@
-import {
-  html,
-  render,
-  Link,
-  Route as _Route,
-  Switch,
-  useSWR,
-  useState,
-  useMemo,
-} from "https://cdn.skypack.dev/swree@^1.1.0/";
+import React, { useMemo, useState } from "https://cdn.skypack.dev/react@^16.13.1";
+import { render } from "https://cdn.skypack.dev/react-dom@^16.13.1";
+import htm from "https://cdn.skypack.dev/htm@^3.0.4";
 import * as d3 from "https://cdn.skypack.dev/d3@^5.16.0/";
+import { Link, Switch, Route as WouterRoute } from "https://cdn.skypack.dev/wouter@^2.5.0";
+import useSWR from "https://cdn.skypack.dev/swr@^0.2.3";
 
 import dateFns from "./datefns.js";
+
+const html = htm.bind(React.createElement);
 
 render(App(), document.querySelector("#target"));
 
@@ -27,7 +24,7 @@ function App() {
 
 function Route({ path, component, children }) {
   return html`
-    <${_Route} path=${path}>
+    <${WouterRoute} path=${path}>
       ${(params) => {
         if (children && !component) {
           return html`${children}`;
@@ -98,6 +95,9 @@ function GamesList() {
 
 function GameDetail({ name: gameName }) {
   const { data: detail, error } = useApi(`/api/game/${gameName}`);
+  const { gameHistory, historyError } = useHistory(gameName);
+
+  const { currentPlayer, turnNumber, lastUpdated, players } = detail ?? {};
 
   if (error) {
     return html`
@@ -112,9 +112,6 @@ function GameDetail({ name: gameName }) {
       <p>...</p>
     `;
   }
-
-  const { currentPlayer, turnNumber, lastUpdated, players } = detail;
-  const { gameHistory, historyError } = useHistory(gameName);
 
   return html`
     <h2>${gameName} - Turn ${turnNumber}</h2>
@@ -428,7 +425,7 @@ function useHistory(gameName) {
     }
 
     return modifiedHistory;
-  });
+  }, [originalHistory]);
 
   return { gameHistory, historyError };
 }
