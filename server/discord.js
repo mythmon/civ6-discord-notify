@@ -1,4 +1,9 @@
 const fetch = require("node-fetch");
+const seedrandom = require("seedrandom");
+
+const d3 = {
+  ...require("d3-color"),
+};
 
 const config = require("./config.js");
 
@@ -18,12 +23,21 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     allowed_mentions,
   };
 
+  const getColor = () => {
+    const rng = seedrandom(`highlight-${game.name}`);
+    const a = randRange(rng, -160, 160);
+    const b = randRange(rng, -160, 160);
+    const l = randRange(rng, 70, 90);
+    const colorObj = d3.lab(l, a, b);
+    return parseInt(colorObj.formatHex().slice(1), 16);
+  };
+
   switch (config.messageStyle) {
     case "embed": {
       discordPayload.embeds = [
         {
           title: game.name,
-          color: 0x05d458,
+          color: getColor(),
           description: `It's ${playerMention}'s turn on round ${turnNumber}.`,
         },
       ];
@@ -40,7 +54,7 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
       discordPayload.embeds = [
         {
           title: game.name,
-          color: 0x05d458,
+          color: getColor(),
           fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
       ];
@@ -94,3 +108,7 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     throw new Error("Could not send notification:", await res.text());
   }
 };
+
+function randRange(rng, min, max) {
+  return rng.quick() * (max - min) + min;
+}
