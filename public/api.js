@@ -1,8 +1,12 @@
 import useSWR from "/deps/swr.js";
 
-export function useApi(key) {
+export function useApi(key, options) {
   const minute = 60 * 1000;
-  return useSWR(key, fetcher, { refreshInterval: 5 * minute });
+  return useSWR(key, fetcher, {
+    refreshInterval: 5 * minute,
+    dedupingInterval: 1 * minute,
+    ...options,
+  });
 }
 
 async function fetcher(key) {

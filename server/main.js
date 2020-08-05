@@ -8,6 +8,7 @@ const csvStringify = require("csv-stringify");
 const config = require("./config.js");
 const { getDb } = require("./db.js");
 const { sendTurnNotification } = require("./discord.js");
+const auth = require("./auth.js");
 
 const root = path.resolve(__dirname + "/../public");
 
@@ -19,6 +20,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(root));
+
+auth.setup(app);
 
 app.use("/fa", (request, response) => {
   const requestPath = path.normalize(request.path.slice(1));
@@ -32,8 +35,12 @@ app.use("/fa", (request, response) => {
   response.sendFile(filePath);
 });
 
-app.post("/api/turn/:secretKey", async (request, response) => {
-  const { secretKey } = request.params;
+app.get("/api/whoami", (req, res) => {
+  res.json({ user: req.user || null });
+});
+
+app.post("/api/turn/:turnToken", async (request, response) => {
+  const { turnToken } = request.params;
   let {
     Value1: gameName,
     Value2: playerCivName,
@@ -45,10 +52,10 @@ app.post("/api/turn/:secretKey", async (request, response) => {
     silent = !!JSON.parse(silent);
   }
 
-  if (secretKey !== config.secretKey) {
-    console.warn("bad secret", secretKey);
+  if (turnToken !== config.turnToken) {
+    console.warn("bad turn token", turnToken);
     response.status(403);
-    response.json({ error: "bad secret" });
+    response.json({ error: "bad turn token" });
     return;
   }
 

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Civ6 Turn Notifier - Auth Success</title>
+
+    <link
+      id="favicon"
+      rel="icon"
+      href="https://glitch.com/edit/favicon-app.ico"
+      type="image/x-icon"
+    />
+
+    <script>
+      const url = new URL(window.location);
+      let authResult;
+
+      if (url.searchParams.has("success")) {
+        authResult = "success";
+      } else if (url.searchParams.has("failure")) {
+        authResult = "failure";
+      }
+
+      if (window.opener && authResult) {
+        window.opener.postMessage(`auth-popup-${authResult}`, "*");
+        setTimeout(() => window.close(), 100);
+      } else {
+        console.log({ opener: window.opener, authResult });
+        document.textContent = "Something has gone wrong";
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

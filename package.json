@@ -10,13 +10,17 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
+    "connect-session-knex": "^1.7.3",
     "cors": "^2.8.5",
     "csv-stringify": "^5.5.0",
     "d3-color": "^1.4.1",
     "express": "^4.17.1",
     "express-history-api-fallback": "^2.2.1",
+    "express-session": "^1.17.1",
     "knex": "^0.21.2",
     "node-fetch": "^2.6.0",
+    "passport": "^0.4.1",
+    "passport-discord": "^0.1.4",
     "seedrandom": "^3.0.5",
     "sqlite3": "^4.2.0"
   },

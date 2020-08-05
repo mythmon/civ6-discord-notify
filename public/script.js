@@ -4,6 +4,7 @@ import { Link, Switch, Route as WouterRoute } from "/deps/wouter.js";
 
 import ErrorBoundary from "/ErrorBoundary.js";
 import { useApi } from "/api.js";
+import { AuthIcon } from "/components/auth.js";
 
 const GameDetailPage = React.lazy(() => import("/pages/GameDetailPage.js"));
 
@@ -11,16 +12,23 @@ render(App(), document.querySelector("#target"));
 
 function App() {
   return html`
-    <h1><${Link} href="/">Civilization 6 Game Tracker<//></h1>
+    <div class="wrapper">
+      <header>
+        <h1><${Link} href="/">Civilization 6 Game Tracker<//></h1>
+        <${AuthIcon} />
+      </header>
 
-    <${ErrorBoundary}>
-      <${Suspense} fallback=${html`<div>...</div>`}>
-        <${Switch}>
-          <${Route} path="/"><${GamesList} /><//>
-          <${Route} path="/g/:name" component=${GameDetailPage}><//>
+      <main>
+        <${ErrorBoundary}>
+          <${Suspense} fallback=${html`<div>...</div>`}>
+            <${Switch}>
+              <${Route} path="/"><${GamesList} /><//>
+              <${Route} path="/g/:name" component=${GameDetailPage}><//>
+            <//>
+          <//>
         <//>
-      <//>
-    <//>
+      </main>
+    </div>
   `;
 }
 
