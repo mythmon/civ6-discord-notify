@@ -80,7 +80,7 @@ export default function TurnSpiralChart({ gameHistory: { turnNotifications } }) 
                     cx=${x(notif.receivedAt)}
                     cy=${y(notif.receivedAt)}
                     r="2"
-                    fill=${colors(notif.playerCivName)}
+                    fill=${colors(notif.civilizationUsername)}
                   />
                 `
             )}

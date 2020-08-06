@@ -9,6 +9,7 @@ const config = require("./config.js");
 const { getDb } = require("./db.js");
 const { sendTurnNotification } = require("./discord.js");
 const auth = require("./auth.js");
+const knexfile = require("../knexfile.js");
 
 const root = path.resolve(__dirname + "/../public");
 
@@ -43,7 +44,7 @@ app.post("/api/turn/:turnToken", async (request, response) => {
   const { turnToken } = request.params;
   let {
     Value1: gameName,
-    Value2: playerCivName,
+    Value2: civilizationUserName,
     Value3: turnNumber,
     silent = false,
   } = request.body;
@@ -66,17 +67,16 @@ app.post("/api/turn/:turnToken", async (request, response) => {
     return;
   }
 
-  const player = config.players[playerCivName] || { civName: playerCivName };
-
   const db = await getDb();
-  await db("moves").insert({ playerCivName, gameName, turnNumber });
+  const user = await db("users").where({ civilizationUserName }).first();
+  await db("moves").insert({ userId: user.id, gameName, turnNumber });
 
   response.status(202);
   response.send();
 
   if (!silent) {
     try {
-      await sendTurnNotification({ player, game, turnNumber });
+      await sendTurnNotification({ user, game, turnNumber });
     } catch (err) {
       console.error("Could not send Discord notification", err.toString());
     }
@@ -94,7 +94,7 @@ app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
   const db = await getDb();
-  const gameMoves = db("moves").where({ gameName });
+  const gameMoves = db("moves").where({ gameName }).join("users", "moves.userId", "users.id");
 
   if (gameMoves.length == 0 && !config.games[gameName]) {
     response.status(404);
@@ -108,8 +108,7 @@ app.get("/api/game/:gameName", async (request, response) => {
   let players = null;
 
   if (lastNotification.turnNumber > 1) {
-    const playerCount = (await gameMoves.clone().distinct("playerCivName").pluck("playerCivName"))
-      .length;
+    const playerCount = (await gameMoves.clone().distinct("userId")).length;
 
     let tryTurn = lastNotification.turnNumber - 1;
     while (!players && tryTurn >= 1) {
@@ -117,7 +116,7 @@ app.get("/api/game/:gameName", async (request, response) => {
         .clone()
         .where({ turnNumber: tryTurn })
         .orderBy("receivedAt", "ascending")
-        .pluck("playerCivName");
+        .pluck("civilizationUsername");
 
       if (turnPlayers.length == playerCount) {
         players = turnPlayers;
@@ -133,15 +132,15 @@ app.get("/api/game/:gameName", async (request, response) => {
     players = await gameMoves
       .clone()
       .orderBy("receivedAt", "ascending")
-      .distinct("playerCivName")
-      .pluck("playerCivName");
+      .distinct("civilizationUsername")
+      .pluck("civilizationUsername");
   }
 
   response.json({
     name: gameName,
     players,
     turnNumber: lastNotification.turnNumber,
-    currentPlayer: lastNotification.playerCivName,
+    currentPlayer: lastNotification.civilizationUsername,
     lastUpdated: new Date(lastNotification.receivedAt).toISOString(),
   });
 });
@@ -157,7 +156,7 @@ app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
   }
 
   const db = await getDb();
-  const moves = await db.select("*").from("moves").where({ gameName });
+  const moves = await db("moves").join("users", "moves.userId", "users.id").where({ gameName });
 
   for (const move of moves) {
     let d = new Date(move.receivedAt);
