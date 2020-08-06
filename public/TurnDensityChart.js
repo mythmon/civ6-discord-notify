@@ -18,8 +18,8 @@ export default function TurnDensityChart({ gameHistory }) {
   const names = [];
 
   for (const notif of turnNotifications) {
-    if (!names.includes(notif.playerCivName)) {
-      names.push(notif.playerCivName);
+    if (!names.includes(notif.civilizationUsername)) {
+      names.push(notif.civilizationUsername);
     }
   }
 
@@ -38,7 +38,7 @@ export default function TurnDensityChart({ gameHistory }) {
       name,
       kde(
         turnNotifications
-          .filter((notif) => notif.playerCivName == name)
+          .filter((notif) => notif.civilizationUsername == name)
           .map((notif) => notif.fractionOfDay * 24)
       ),
     ]);
@@ -95,7 +95,7 @@ export default function TurnDensityChart({ gameHistory }) {
               x2=${x(notif.fractionOfDay * 24)}
               y1=${height - margin.bottom}
               y2=${height}
-              stroke=${colors(notif.playerCivName)}
+              stroke=${colors(notif.civilizationUsername)}
               opacity="0.8"
             />
           `
