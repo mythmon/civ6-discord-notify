@@ -35,7 +35,7 @@ module.exports.setup = (app) => {
     done(null, user);
   });
 
-  app.use(session({ secret: config.secretKey, store, saveUninitialized: false }));
+  app.use(session({ secret: config.secretKey, store, saveUninitialized: false, resave: false }));
   app.use(passport.initialize());
   app.use(passport.session());
 
