@@ -7,13 +7,12 @@ const d3 = {
 
 const config = require("./config.js");
 
-module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
-  let playerMention = player.civName;
+module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
+  let playerMention = user.civilizationUsername;
   let allowed_mentions = {};
-  const playerObj = config.players[player.civName];
-  if (playerObj && playerObj.discordId) {
-    playerMention = `<@${playerObj.discordId}>`;
-    allowed_mentions.users = [playerObj.discordId];
+  if (user.discordId) {
+    playerMention = `<@${user.discordId}>`;
+    allowed_mentions.users = [user.discordId];
   }
 
   const discordPayload = {
@@ -74,7 +73,7 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
   let success = false;
   let res;
   console.log(
-    `Sending Discord notification to ${player.civName} for game ${game.name} turn ${turnNumber}`
+    `Sending Discord notification to ${user.civilizationUsername} for game ${game.name} turn ${turnNumber}`
   );
   for (let attemptNumber = 0; attemptNumber < maxAttemps; attemptNumber++) {
     res = await fetch(url, {
@@ -89,9 +88,9 @@ module.exports.sendTurnNotification = async ({ player, game, turnNumber }) => {
     } else if (res.status == 429 && attemptNumber + 1 < maxAttemps) {
       const retrySec = res.headers.get("x-ratelimit-reset-after") || 1;
       console.log(
-        `Rate limited. Waiting ${retrySec} seconds to retry for ${player.civName}, attempt ${
-          attemptNumber + 2
-        } of ${maxAttemps}`
+        `Rate limited. Waiting ${retrySec} seconds to retry for ${
+          user.civilizationUsername
+        }, attempt ${attemptNumber + 2} of ${maxAttemps}`
       );
       await new Promise((resolve) => setTimeout(resolve, retrySec * 1000));
     } else {

@@ -9,7 +9,6 @@ const config = require("./config.js");
 const { getDb } = require("./db.js");
 const { sendTurnNotification } = require("./discord.js");
 const auth = require("./auth.js");
-const knexfile = require("../knexfile.js");
 
 const root = path.resolve(__dirname + "/../public");
 
