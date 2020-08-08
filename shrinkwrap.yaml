@@ -14,6 +14,7 @@ dependencies:
   seedrandom: 3.0.5
   sqlite3: 4.2.0
 devDependencies:
+  dotenv: 8.2.0
   eslint: 7.5.0
   eslint-plugin-node: 11.1.0
   eslint-plugin-react-hooks: 4.0.8
@@ -719,6 +720,12 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-uEUyaDKoSQ1M4Oq8l45hSE26SnTxL6snNnqvK/VWx5wJhmff5z0FUVJDKDanor/6w3kzE3i7XZOk+7wC0EXr1A==
+  /dotenv/8.2.0:
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
   /duplexer3/0.1.4:
     dev: true
     resolution:
@@ -3272,6 +3279,7 @@ specifiers:
   cors: ^2.8.5
   csv-stringify: ^5.5.0
   d3-color: ^1.4.1
+  dotenv: ^8.2.0
   eslint: ^7.5.0
   eslint-plugin-node: ^11.1.0
   eslint-plugin-react-hooks: ^4.0.8
