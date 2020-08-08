@@ -4,6 +4,7 @@ const cors = require("cors");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 const csvStringify = require("csv-stringify");
+const morgan = require("morgan");
 
 const config = require("./config.js");
 const { getDb } = require("./db.js");
@@ -16,6 +17,16 @@ const root = path.resolve(__dirname + "/../public");
 getDb();
 
 const app = express();
+
+const logFormatter = morgan.compile(":method :url :status");
+app.use(
+  morgan((tokens, req, res) => {
+    if (res.statusCode == 304) {
+      return null;
+    }
+    return logFormatter(tokens, req, res);
+  })
+);
 
 app.use(cors());
 app.use(express.json());
@@ -95,7 +106,8 @@ app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
   const db = await getDb();
-  const gameMoves = db("moves").where({ "games.name": gameName })
+  const gameMoves = db("moves")
+    .where({ "games.name": gameName })
     .join("games", "moves.gameId", "games.id")
     .join("users", "moves.userId", "users.id");
 
@@ -149,13 +161,21 @@ app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
 
   const game = await db("games").where({ name: gameName }).first("id", "name");
 
-  const moves = (await db("moves")
-    .join("users", "moves.userId", "users.id")
-    .where({ "gameId": game.id })
-    .select("moves.id", "turnNumber", "receivedAt", "users.civilizationUsername", "users.discordId"))
-    .map(move => {
-      delete move.userId; return move
-    });
+  const moves = (
+    await db("moves")
+      .join("users", "moves.userId", "users.id")
+      .where({ gameId: game.id })
+      .select(
+        "moves.id",
+        "turnNumber",
+        "receivedAt",
+        "users.civilizationUsername",
+        "users.discordId"
+      )
+  ).map((move) => {
+    delete move.userId;
+    return move;
+  });
 
   for (const move of moves) {
     let d = new Date(move.receivedAt);
