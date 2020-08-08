@@ -35,8 +35,6 @@ exports.down = async (knex) => {
       .where({ userId: user.id });
   }
 
-  await knex.schema.dropTable("users");
-
   await knex.schema.alterTable("moves", (table) => {
     table.dropColumn("userId");
   });

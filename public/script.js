@@ -36,17 +36,17 @@ function Route({ path, component, children }) {
   return html`
     <${WouterRoute} path=${path}>
       ${(params) => {
-        if (children && !component) {
-          return html`${children}`;
-        } else if (component) {
-          const transformedParams = Object.fromEntries(
-            Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)])
-          );
-          return html`<${component} ...${transformedParams}>${children}<//>`;
-        } else {
-          throw new Error("Must pass either component or children or both");
-        }
-      }}
+      if (children && !component) {
+        return html`${children}`;
+      } else if (component) {
+        const transformedParams = Object.fromEntries(
+          Object.entries(params).map(([key, value]) => [key, decodeURIComponent(value)])
+        );
+        return html`<${component} ...${transformedParams}>${children}<//>`;
+      } else {
+        throw new Error("Must pass either component or children or both");
+      }
+    }}
     <//>
   `;
 }
@@ -70,14 +70,14 @@ function GamesList() {
   return html`
     <ul>
       ${games.map(
-        (game) => html`
+    (game) => html`
           <li>
-            <${Link} href=${`/g/${game.gameName}`}>
-              ${game.gameName}
+            <${Link} href=${`/g/${game.name}`}>
+              ${game.name}
             <//>
           </li>
         `
-      )}
+  )}
     </ul>
   `;
 }

@@ -59,16 +59,18 @@ app.post("/api/turn/:turnToken", async (request, response) => {
     return;
   }
 
-  const game = config.games[gameName];
+  const db = await getDb();
+
+  const game = await db("games").where({ name: gameName }).first();
   if (!game) {
-    response.status(404);
-    response.json({ error: `Unknown game ${gameName}` });
-    return;
+    const game = { name: gameName };
+    const [newId] = await db("games").insert(game);
+    game.id = newId;
   }
 
-  const db = await getDb();
   const user = await db("users").where({ civilizationUserName }).first();
-  await db("moves").insert({ userId: user.id, gameName, turnNumber });
+
+  await db("moves").insert({ userId: user.id, gameId: game.id, turnNumber });
 
   response.status(202);
   response.send();
@@ -84,7 +86,7 @@ app.post("/api/turn/:turnToken", async (request, response) => {
 
 app.get("/api/game", async (request, response) => {
   const db = await getDb();
-  const games = await db("moves").distinct("gameName");
+  const games = await db("games").select("id", "name");
 
   response.json(games);
 });
@@ -93,13 +95,9 @@ app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
   const db = await getDb();
-  const gameMoves = db("moves").where({ gameName }).join("users", "moves.userId", "users.id");
-
-  if (gameMoves.length == 0 && !config.games[gameName]) {
-    response.status(404);
-    response.json({ error: `Unknown game "${gameName}"` });
-    return;
-  }
+  const gameMoves = db("moves").where({ "games.name": gameName })
+    .join("games", "moves.gameId", "games.id")
+    .join("users", "moves.userId", "users.id");
 
   // The previous turn should be complete
   const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first("*");
@@ -147,15 +145,17 @@ app.get("/api/game/:gameName", async (request, response) => {
 app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
   const { gameName, ext } = request.params;
 
-  const game = config.games[gameName];
-  if (!game) {
-    response.status(404);
-    response.json({ error: `Unknown game "${gameName}"` });
-    return;
-  }
-
   const db = await getDb();
-  const moves = await db("moves").join("users", "moves.userId", "users.id").where({ gameName });
+
+  const game = await db("games").where({ name: gameName }).first("id", "name");
+
+  const moves = (await db("moves")
+    .join("users", "moves.userId", "users.id")
+    .where({ "gameId": game.id })
+    .select("moves.id", "turnNumber", "receivedAt", "users.civilizationUsername", "users.discordId"))
+    .map(move => {
+      delete move.userId; return move
+    });
 
   for (const move of moves) {
     let d = new Date(move.receivedAt);
@@ -164,7 +164,7 @@ app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
 
   if (ext == null || ext == "json") {
     response.json({
-      name: gameName,
+      ...game,
       turnNotifications: moves,
     });
   } else if (ext == "csv") {

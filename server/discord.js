@@ -8,6 +8,10 @@ const d3 = {
 const config = require("./config.js");
 
 module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
+  if (!game.webhookUrl) {
+    return;
+  }
+
   let playerMention = user.civilizationUsername;
   let allowed_mentions = {};
   if (user.discordId) {
@@ -89,16 +93,16 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
       const retrySec = res.headers.get("x-ratelimit-reset-after") || 1;
       console.log(
         `Rate limited. Waiting ${retrySec} seconds to retry for ${
-          user.civilizationUsername
+        user.civilizationUsername
         }, attempt ${attemptNumber + 2} of ${maxAttemps}`
       );
       await new Promise((resolve) => setTimeout(resolve, retrySec * 1000));
     } else {
       throw new Error(
         `Unexpected response from Discord notification:\n` +
-          `:: Status: ${res.status} \n` +
-          `:: Headers: ${JSON.stringify(res.headers.raw())}\n` +
-          `:: Body: ${await res.text()}`
+        `:: Status: ${res.status} \n` +
+        `:: Headers: ${JSON.stringify(res.headers.raw())}\n` +
+        `:: Body: ${await res.text()}`
       );
     }
   }
