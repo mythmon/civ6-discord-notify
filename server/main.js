@@ -97,6 +97,7 @@ app.get("/api/game/:gameName", async (request, response) => {
 
   const gameMoves = Move.query()
     .joinRelated("game")
+    .joinRelated("user")
     .where({ "game.name": gameName })
     .withGraphFetched("[user, game]");
 
@@ -129,17 +130,18 @@ app.get("/api/game/:gameName", async (request, response) => {
     players = (
       await gameMoves
         .clone()
-        .joinRelated("user")
         .orderBy("receivedAt", "ascending")
         .distinct("user.civilizationUsername")
     ).map((turn) => turn.user);
   }
 
+  console.log({ lastNotification });
+
   response.json({
     name: gameName,
     players: players.map((p) => p.civilizationUsername),
     turnNumber: lastNotification.turnNumber,
-    currentPlayer: lastNotification.civilizationUsername,
+    currentPlayer: lastNotification.user.civilizationUsername,
     lastUpdated: new Date(lastNotification.receivedAt).toISOString(),
   });
 });
