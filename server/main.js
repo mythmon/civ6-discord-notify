@@ -7,14 +7,13 @@ const csvStringify = require("csv-stringify");
 const morgan = require("morgan");
 
 const config = require("./config.js");
-const { getDb } = require("./db.js");
+const { runMigrations, Game, User, Move } = require("./db.js");
 const { sendTurnNotification } = require("./discord.js");
 const auth = require("./auth.js");
 
 const root = path.resolve(__dirname + "/../public");
 
-// preload database
-getDb();
+runMigrations();
 
 const app = express();
 
@@ -54,10 +53,12 @@ app.post("/api/turn/:turnToken", async (request, response) => {
   const { turnToken } = request.params;
   let {
     Value1: gameName,
-    Value2: civilizationUserName,
+    Value2: civilizationUsername,
     Value3: turnNumber,
     silent = false,
   } = request.body;
+
+  turnNumber = parseInt(turnNumber);
 
   if (typeof silent == "string") {
     silent = !!JSON.parse(silent);
@@ -70,18 +71,9 @@ app.post("/api/turn/:turnToken", async (request, response) => {
     return;
   }
 
-  const db = await getDb();
-
-  const game = await db("games").where({ name: gameName }).first();
-  if (!game) {
-    const game = { name: gameName };
-    const [newId] = await db("games").insert(game);
-    game.id = newId;
-  }
-
-  const user = await db("users").where({ civilizationUserName }).first();
-
-  await db("moves").insert({ userId: user.id, gameId: game.id, turnNumber });
+  const game = await Game.query().findOneOrInsert({ name: gameName });
+  const user = await User.query().findOneOrInsert({ civilizationUsername });
+  await Move.query().insert({ userId: user.id, gameId: game.id, turnNumber });
 
   response.status(202);
   response.send();
@@ -96,23 +88,20 @@ app.post("/api/turn/:turnToken", async (request, response) => {
 });
 
 app.get("/api/game", async (request, response) => {
-  const db = await getDb();
-  const games = await db("games").select("id", "name");
-
+  const games = await Game.query().select("id", "name");
   response.json(games);
 });
 
 app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
 
-  const db = await getDb();
-  const gameMoves = db("moves")
-    .where({ "games.name": gameName })
-    .join("games", "moves.gameId", "games.id")
-    .join("users", "moves.userId", "users.id");
+  const gameMoves = Move.query()
+    .joinRelated("game")
+    .where({ "game.name": gameName })
+    .withGraphFetched("[user, game]");
 
   // The previous turn should be complete
-  const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first("*");
+  const lastNotification = await gameMoves.clone().orderBy("receivedAt", "desc").first();
 
   let players = null;
 
@@ -120,15 +109,14 @@ app.get("/api/game/:gameName", async (request, response) => {
     const playerCount = (await gameMoves.clone().distinct("userId")).length;
 
     let tryTurn = lastNotification.turnNumber - 1;
-    while (!players && tryTurn >= 1) {
-      let turnPlayers = await gameMoves
+    while (!players && tryTurn >= lastNotification.turnNumber - 10) {
+      let turnMoves = await gameMoves
         .clone()
         .where({ turnNumber: tryTurn })
-        .orderBy("receivedAt", "ascending")
-        .pluck("civilizationUsername");
+        .orderBy("receivedAt", "ascending");
 
-      if (turnPlayers.length == playerCount) {
-        players = turnPlayers;
+      if (turnMoves.length == playerCount) {
+        players = turnMoves.map((turn) => turn.user);
         break;
       } else {
         tryTurn -= 1;
@@ -138,16 +126,18 @@ app.get("/api/game/:gameName", async (request, response) => {
 
   // No turns were complete? Guess by received date.
   if (!players) {
-    players = await gameMoves
-      .clone()
-      .orderBy("receivedAt", "ascending")
-      .distinct("civilizationUsername")
-      .pluck("civilizationUsername");
+    players = (
+      await gameMoves
+        .clone()
+        .joinRelated("user")
+        .orderBy("receivedAt", "ascending")
+        .distinct("user.civilizationUsername")
+    ).map((turn) => turn.user);
   }
 
   response.json({
     name: gameName,
-    players,
+    players: players.map((p) => p.civilizationUsername),
     turnNumber: lastNotification.turnNumber,
     currentPlayer: lastNotification.civilizationUsername,
     lastUpdated: new Date(lastNotification.receivedAt).toISOString(),
@@ -157,21 +147,13 @@ app.get("/api/game/:gameName", async (request, response) => {
 app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
   const { gameName, ext } = request.params;
 
-  const db = await getDb();
-
-  const game = await db("games").where({ name: gameName }).first("id", "name");
+  const game = await Game.query().findOne({ name: gameName }).select("id", "name");
 
   const moves = (
-    await db("moves")
-      .join("users", "moves.userId", "users.id")
+    await Move.query()
+      .joinRelated("user")
       .where({ gameId: game.id })
-      .select(
-        "moves.id",
-        "turnNumber",
-        "receivedAt",
-        "users.civilizationUsername",
-        "users.discordId"
-      )
+      .select("moves.id", "turnNumber", "receivedAt", "user.civilizationUsername", "user.discordId")
   ).map((move) => {
     delete move.userId;
     return move;

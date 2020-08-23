@@ -8,7 +8,7 @@ const KnexSessionStore = require("connect-session-knex")(session);
 const db = require("./db.js");
 const config = require("./config.js");
 
-const store = new KnexSessionStore({ knex: db.getDbSync() });
+const store = new KnexSessionStore({ knex: db.getDb() });
 
 function makeAuthStrategy() {
   return new passportDiscord.Strategy(
@@ -25,6 +25,21 @@ function makeAuthStrategy() {
 }
 
 module.exports.setup = (app) => {
+  const requiredKeys = new Set(["clientID", "clientSecret", "callbackBase"]);
+  for (const [key, value] of Object.entries(config.discordAuth)) {
+    if (value) {
+      requiredKeys.delete(key);
+    }
+  }
+  if (requiredKeys.size > 0) {
+    console.warn(
+      `Not setting up oauth. Need config options ${Array.from(requiredKeys).join(
+        ", "
+      )} to enable auth`
+    );
+    return;
+  }
+
   passport.use(makeAuthStrategy());
 
   passport.serializeUser((user, done) => {
