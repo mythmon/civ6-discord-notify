@@ -71,6 +71,18 @@ app.post("/api/turn/:turnToken", async (request, response) => {
     return;
   }
 
+  if (
+    await Move.query().joinRelated("game").joinRelated("user").findOne({
+      "user.civilizationUsername": civilizationUsername,
+      "game.name": gameName,
+      turnNumber,
+    })
+  ) {
+    response.status(409);
+    response.json({ error: "turn already exists" });
+    return;
+  }
+
   const game = await Game.query().findOneOrInsert({ name: gameName });
   const user = await User.query().findOneOrInsert({ civilizationUsername });
   await Move.query().insert({ userId: user.id, gameId: game.id, turnNumber });
@@ -134,8 +146,6 @@ app.get("/api/game/:gameName", async (request, response) => {
         .distinct("user.civilizationUsername")
     ).map((turn) => turn.user);
   }
-
-  console.log({ lastNotification });
 
   response.json({
     name: gameName,
