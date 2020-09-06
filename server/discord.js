@@ -39,11 +39,18 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
     }
 
     case "hybrid": {
-      discordPayload.content = `It's ${playerMention}'s turn on ${game.name}.`;
+      let gameMention;
+      if (config.projectDomain) {
+        gameMention = `[${game.name}](${config.projectDomain}/api/game/${game.name})`;
+      } else {
+        gameMention = game.name;
+      }
+
+      discordPayload.content = `It's ${playerMention}'s turn on ${gameMention}.`;
       discordPayload.embeds = [
         {
           title: game.name,
-          color: game.color({ format: "color" }),
+          color: game.color({ format: "hex" }),
           fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
       ];
