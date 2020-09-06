@@ -41,7 +41,7 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
     case "hybrid": {
       let gameMention;
       if (config.projectDomain) {
-        let gameUrl = `${config.projectDomain}/api/game/${encodeURIComponent(game.name)}`;
+        let gameUrl = `${config.projectDomain}/g/${encodeURIComponent(game.name)}`;
         gameMention = `[${game.name}](${gameUrl})`;
       } else {
         gameMention = game.name;
