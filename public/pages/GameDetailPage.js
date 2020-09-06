@@ -21,22 +21,29 @@ export default function GameDetail({ name: gameName }) {
   }
 
   if (!detail) {
-    return html`
-      <h2>${gameName}</h2>
-      <p>...</p>
-    `;
+    return html`<h2>${gameName}</h2> `;
   }
 
   return html`
-    <h2>${gameName} - Turn ${turnNumber}</h2>
-    <${RoundProgress} players=${players} currentPlayer=${currentPlayer} />
+    <h2>
+      ${gameName} - ${detail.state == "live" && html`Turn ${turnNumber}`}
+      ${detail.state == "pending" && html`Pending`}
+      ${detail.state == "finished" && html`Finished after ${turnNumber} turns`}
+      ${detail.state == "archived" && html`Archived after ${turnNumber} turns`}
+    </h2>
+    ${detail.state == "live" &&
+    html`<${RoundProgress} players=${players} currentPlayer=${currentPlayer} />`}
+    ${detail.state == "finished" && html`<strong>${detail.winner}</strong> won.`}
+    ${detail.state == "pending" && html`<p>Waiting for game to start</p>`}
     ${historyError && html`<p>${historyError.toString()}</p>`}
     ${gameHistory &&
     html`
-      <${Suspense} fallback=${html`<div>...</div>`}>
+      <${Suspense} fallback=${html`<div></div>`}>
+        <hr />
         <${TurnDensityChart} gameHistory=${gameHistory} />
       <//>
-      <${Suspense} fallback=${html`<div>...</div>`}>
+      <${Suspense} fallback=${html`<div></div>`}>
+        <hr />
         <${TurnSpiralChart} gameHistory=${gameHistory} />
       <//>
     `}

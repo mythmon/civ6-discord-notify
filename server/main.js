@@ -100,12 +100,13 @@ app.post("/api/turn/:turnToken", async (request, response) => {
 });
 
 app.get("/api/game", async (request, response) => {
-  const games = await Game.query().select("id", "name");
-  response.json(games);
+  const games = await Game.query().select("id", "name", "state");
+  response.json(games.map((game) => ({ color: game.color({ format: "hex" }), ...game })));
 });
 
 app.get("/api/game/:gameName", async (request, response) => {
   const { gameName } = request.params;
+  const game = await Game.query().findOne({ name: gameName }).withGraphFetched("winner");
 
   const gameMoves = Move.query()
     .joinRelated("game")
@@ -153,13 +154,15 @@ app.get("/api/game/:gameName", async (request, response) => {
     turnNumber: lastNotification.turnNumber,
     currentPlayer: lastNotification.user.civilizationUsername,
     lastUpdated: new Date(lastNotification.receivedAt).toISOString(),
+    state: game.state,
+    winner: game.winner ? game.winner.civilizationUsername : null,
   });
 });
 
 app.get("/api/game/:gameName/history.:ext?", async (request, response) => {
   const { gameName, ext } = request.params;
 
-  const game = await Game.query().findOne({ name: gameName }).select("id", "name");
+  const game = await Game.query().findOne({ name: gameName }).select("id", "name", "state");
 
   const moves = (
     await Move.query()

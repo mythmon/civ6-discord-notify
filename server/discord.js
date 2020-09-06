@@ -1,9 +1,4 @@
 const fetch = require("node-fetch");
-const seedrandom = require("seedrandom");
-
-const d3 = {
-  ...require("d3-color"),
-};
 
 const config = require("./config.js");
 
@@ -26,21 +21,12 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
     allowed_mentions,
   };
 
-  const getColor = () => {
-    const rng = seedrandom(`highlight-${game.name}`);
-    const a = randRange(rng, -160, 160);
-    const b = randRange(rng, -160, 160);
-    const l = randRange(rng, 70, 90);
-    const colorObj = d3.lab(l, a, b);
-    return parseInt(colorObj.formatHex().slice(1), 16);
-  };
-
   switch (config.messageStyle) {
     case "embed": {
       discordPayload.embeds = [
         {
           title: game.name,
-          color: getColor(),
+          color: game.color({ format: "discord" }),
           description: `It's ${playerMention}'s turn on round ${turnNumber}.`,
         },
       ];
@@ -57,7 +43,7 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
       discordPayload.embeds = [
         {
           title: game.name,
-          color: getColor(),
+          color: game.color({ format: "color" }),
           fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
       ];
@@ -93,16 +79,16 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
       const retrySec = res.headers.get("x-ratelimit-reset-after") || 1;
       console.log(
         `Rate limited. Waiting ${retrySec} seconds to retry for ${
-        user.civilizationUsername
+          user.civilizationUsername
         }, attempt ${attemptNumber + 2} of ${maxAttemps}`
       );
       await new Promise((resolve) => setTimeout(resolve, retrySec * 1000));
     } else {
       throw new Error(
         `Unexpected response from Discord notification:\n` +
-        `:: Status: ${res.status} \n` +
-        `:: Headers: ${JSON.stringify(res.headers.raw())}\n` +
-        `:: Body: ${await res.text()}`
+          `:: Status: ${res.status} \n` +
+          `:: Headers: ${JSON.stringify(res.headers.raw())}\n` +
+          `:: Body: ${await res.text()}`
       );
     }
   }
@@ -111,7 +97,3 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
     throw new Error("Could not send notification:", await res.text());
   }
 };
-
-function randRange(rng, min, max) {
-  return rng.quick() * (max - min) + min;
-}
