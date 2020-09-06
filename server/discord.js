@@ -41,7 +41,8 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
     case "hybrid": {
       let gameMention;
       if (config.projectDomain) {
-        gameMention = `[${game.name}](${config.projectDomain}/api/game/${game.name})`;
+        let gameUrl = `${config.projectDomain}/api/game/${encodeURIComponent(game.name)}`;
+        gameMention = `[${game.name}](${gameUrl})`;
       } else {
         gameMention = game.name;
       }
@@ -50,7 +51,7 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
       discordPayload.embeds = [
         {
           title: game.name,
-          color: game.color({ format: "hex" }),
+          color: game.color({ format: "discord" }),
           fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
       ];
