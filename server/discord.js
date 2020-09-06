@@ -47,10 +47,10 @@ module.exports.sendTurnNotification = async ({ user, game, turnNumber }) => {
         gameMention = game.name;
       }
 
-      discordPayload.content = `It's ${playerMention}'s turn on ${gameMention}.`;
+      discordPayload.content = `It's ${playerMention}'s turn on ${game.name}.`;
       discordPayload.embeds = [
         {
-          title: game.name,
+          title: gameMention,
           color: game.color({ format: "discord" }),
           fields: [{ name: "Round", value: `${turnNumber}`, inline: true }],
         },
